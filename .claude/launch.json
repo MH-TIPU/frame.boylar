@@ -1,6 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "frame", "runtimeExecutable": "php", "runtimeArgs": ["-S", "localhost:8123"], "port": 8123 }
+    { "name": "frame", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev", "--", "-p", "8123"], "port": 8123 }
   ]
 }
