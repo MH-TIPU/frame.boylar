@@ -139,20 +139,24 @@ export default function Page() {
           onPointerDown={dragStart} onPointerMove={dragMove} onPointerUp={dragEnd} onPointerCancel={dragEnd}
         />
         <form className="panel" ref={form} onSubmit={submitLead}>
-          <label className="step">
-            <b>১. আপনার ছবি · Your photo</b>
-            <input type="file" accept="image/*" onChange={pickPhoto} />
-            {hasPhoto && <small>ছবি টেনে সরান · Drag the photo to reposition</small>}
-          </label>
-          {hasPhoto && (
-            <label className="step">
-              <b>জুম · Zoom</b>
-              <input type="range" min="1" max="3" step="0.01" value={zoom} onChange={changeZoom} />
-            </label>
-          )}
           <div className="step">
             <label>
-              <b>২. কোম্পানির লোগো · Company logo (optional)</b>
+              <b>১. আপনার ছবি <span>Your photo</span></b>
+              <input type="file" accept="image/*" onChange={pickPhoto} />
+            </label>
+            {hasPhoto && (
+              <>
+                <label className="zoom">
+                  <span>জুম · Zoom</span>
+                  <input type="range" min="1" max="3" step="0.01" value={zoom} onChange={changeZoom} />
+                </label>
+                <small>ছবি টেনে সরান · Drag the photo to reposition</small>
+              </>
+            )}
+          </div>
+          <div className="step">
+            <label>
+              <b>২. কোম্পানির লোগো <span>Company logo (optional)</span></b>
               <input ref={logoInput} type="file" accept="image/*" onChange={pickLogo} />
             </label>
             <small>স্বচ্ছ (transparent) PNG সবচেয়ে ভালো দেখায়</small>
@@ -160,12 +164,18 @@ export default function Page() {
           </div>
           <button className="download" type="button" disabled={!hasPhoto} onClick={download}>⬇ ডাউনলোড · Download</button>
           <div className="step fields">
-            <b>৩. আপনার তথ্য · Your details (optional)</b>
-            <small>ঐচ্ছিক। পূরণ করলে আমাদের অন্যান্য আয়োজনে আপনাকে আমন্ত্রণ ও আপনার সাথে যোগাযোগের জন্য এই তথ্য সংরক্ষণ করা হবে। · Optional. If you fill this in, we save it to invite you to our other events and to contact you.</small>
-            <label>নাম · Name <input name="name" autoComplete="name" maxLength={100} /></label>
-            <label>ব্যবসার নাম · Business name <input name="business" autoComplete="organization" maxLength={150} /></label>
-            <label>ওয়েবসাইট · Website <input name="url" inputMode="url" autoComplete="url" maxLength={200} placeholder="example.com" /></label>
-            <label>ইমেইল · Email <input name="email" type="email" autoComplete="email" maxLength={150} /></label>
+            <b>৩. আপনার তথ্য <span>Your details (optional)</span></b>
+            <small>
+              ঐচ্ছিক। পূরণ করলে আমাদের অন্যান্য আয়োজনে আপনাকে আমন্ত্রণ ও আপনার সাথে যোগাযোগের জন্য এই তথ্য সংরক্ষণ করা হবে।
+              <br />
+              Optional. If you fill this in, we save it to invite you to our other events and to contact you.
+            </small>
+            <div className="grid">
+              <label>নাম · Name <input name="name" autoComplete="name" maxLength={100} /></label>
+              <label>ব্যবসার নাম · Business name <input name="business" autoComplete="organization" maxLength={150} /></label>
+              <label>ওয়েবসাইট · Website <input name="url" inputMode="url" autoComplete="url" maxLength={200} placeholder="example.com" /></label>
+              <label>ইমেইল · Email <input name="email" type="email" autoComplete="email" maxLength={150} /></label>
+            </div>
             <button className="send" type="submit">পাঠান · Send</button>
             <small role="status">{leadMsg}</small>
           </div>
