@@ -130,7 +130,7 @@ export default function Page() {
   return (
     <>
       <header>
-        <p>Add your photo and company logo, then download and share</p>
+        <h1>Add your photo and company logo, then download and share</h1>
       </header>
       <main>
         <canvas
