@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>এসএমই মেলা ২০২৬ — ফটো ফ্রেম</title>
+<style>
+  :root { --dark: #005c4b; --green: #1ea851; --yellow: #ffe600; --bg: #f4f3df; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, "Noto Sans Bengali", "Hind Siliguri", sans-serif; background: var(--bg); color: #1d2b27; }
+  header { background: var(--dark); color: #fff; padding: 14px 16px; border-bottom: 5px solid var(--yellow); text-align: center; }
+  header p { margin: 0; }
+  footer { text-align: center; padding: 20px 16px; font-size: .8rem; color: #5b6b66; }
+  footer a { color: inherit; }
+  main { max-width: 1000px; margin: 0 auto; padding: 16px; display: grid; gap: 20px; grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr); align-items: start; }
+  @media (max-width: 720px) { main { grid-template-columns: 1fr; } }
+  canvas { width: 100%; height: auto; display: block; border-radius: 8px; box-shadow: 0 4px 18px #0003; background: #fff; }
+  canvas.movable { cursor: grab; touch-action: none; }
+  canvas.movable:active { cursor: grabbing; }
+  .panel { display: grid; gap: 16px; }
+  .step { background: #fff; border-radius: 8px; padding: 14px; border-left: 5px solid var(--green); }
+  .step b { display: block; margin-bottom: 8px; }
+  .step small { display: block; margin-top: 6px; color: #5b6b66; }
+  input[type=file] { width: 100%; font: inherit; }
+  .fields small { margin: 0 0 10px; }
+  #send { width: 100%; padding: 10px; background: var(--dark); color: #fff; }
+  .fields label { display: block; margin-bottom: 8px; font-size: .9rem; }
+  .fields input { display: block; width: 100%; margin-top: 3px; padding: 8px; font: inherit; border: 1px solid #c5cfca; border-radius: 6px; }
+  input[type=range] { width: 100%; accent-color: var(--green); }
+  button { font: inherit; font-weight: 700; padding: 14px; border: 0; border-radius: 8px; cursor: pointer; }
+  #download { background: var(--green); color: #fff; font-size: 1.1rem; }
+  #download:disabled { background: #b9c4bf; cursor: not-allowed; }
+  .link { background: none; padding: 0; margin-top: 8px; color: #b3261e; font-weight: 400; text-decoration: underline; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <p>Add your photo and company logo, then download and share</p>
+</header>
+<main>
+  <canvas id="cv" width="2000" height="2000" aria-label="Frame preview"></canvas>
+  <!-- Leads are posted to lead.php, which stores them in PostgreSQL. Empty action = nothing is sent. -->
+  <form class="panel" id="lead" action="lead.php">
+    <label class="step">
+      <b>১. আপনার ছবি · Your photo</b>
+      <input id="photoIn" type="file" accept="image/*">
+      <small id="moveHint" hidden>ছবি টেনে সরান · Drag the photo to reposition</small>
+    </label>
+    <label class="step" id="zoomBox" hidden>
+      <b>জুম · Zoom</b>
+      <input id="zoom" type="range" min="1" max="3" step="0.01" value="1">
+    </label>
+    <div class="step">
+      <label>
+        <b>২. কোম্পানির লোগো · Company logo (optional)</b>
+        <input id="logoIn" type="file" accept="image/*">
+      </label>
+      <small>স্বচ্ছ (transparent) PNG সবচেয়ে ভালো দেখায়</small>
+      <button class="link" id="logoClear" type="button" hidden>লোগো সরান · Remove logo</button>
+    </div>
+    <button id="download" type="button" disabled>⬇ ডাউনলোড · Download</button>
+    <div class="step fields">
+      <b>৩. আপনার তথ্য · Your details (optional)</b>
+      <small>ঐচ্ছিক। পূরণ করলে আমাদের অন্যান্য আয়োজনে আপনাকে আমন্ত্রণ ও আপনার সাথে যোগাযোগের জন্য এই তথ্য সংরক্ষণ করা হবে। · Optional. If you fill this in, we save it to invite you to our other events and to contact you.</small>
+      <label>নাম · Name <input name="name" autocomplete="name" maxlength="100"></label>
+      <label>ব্যবসার নাম · Business name <input name="business" autocomplete="organization" maxlength="150"></label>
+      <label>ওয়েবসাইট · Website <input name="url" inputmode="url" autocomplete="url" maxlength="200" placeholder="example.com"></label>
+      <label>ইমেইল · Email <input name="email" type="email" autocomplete="email" maxlength="150"></label>
+      <button id="send" type="submit">পাঠান · Send</button>
+      <small id="leadMsg" role="status"></small>
+    </div>
+  </form>
+</main>
+<footer>Made with ♥ by <a href="https://boylar.com" target="_blank" rel="noopener">boylar.com</a></footer>
+
+<script src="frame.js"></script>
+<script>
+// Geometry in the frame's own 2000x2000 pixel space (measured from frame.jpg).
+const CIRCLE = { x: 742.5, y: 935.5, r: 492 };          // the white photo circle
+const LOGO = { x: 1190, y: 1595, w: 450, h: 140 };      // slot right of the BDOSN logo, same height as it
+
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const frame = new Image();
+let photo = null, logo = null, zoom = 1, ox = 0, oy = 0;
+
+function draw() {
+  ctx.drawImage(frame, 0, 0, cv.width, cv.height);
+  if (photo) {
+    const d = CIRCLE.r * 2;
+    const s = Math.max(d / photo.width, d / photo.height) * zoom;   // "cover" the circle
+    const w = photo.width * s, h = photo.height * s;
+    // keep the circle fully covered while dragging
+    ox = Math.max(-(w - d) / 2, Math.min((w - d) / 2, ox));
+    oy = Math.max(-(h - d) / 2, Math.min((h - d) / 2, oy));
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(CIRCLE.x, CIRCLE.y, CIRCLE.r, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(photo, CIRCLE.x - w / 2 + ox, CIRCLE.y - h / 2 + oy, w, h);
+    ctx.restore();
+  }
+  if (logo) {
+    const s = Math.min(LOGO.w / logo.width, LOGO.h / logo.height);  // "contain" in the slot
+    const w = logo.width * s, h = logo.height * s;
+    ctx.drawImage(logo, LOGO.x + (LOGO.w - w) / 2, LOGO.y + (LOGO.h - h) / 2, w, h);
+  }
+}
+
+function loadFile(file) {
+  return new Promise((ok, fail) => {
+    const img = new Image();
+    img.onload = () => ok(img);
+    img.onerror = () => fail(new Error('unreadable image'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function pick(input, apply) {
+  const file = input.files[0];
+  if (!file) return;
+  try { apply(await loadFile(file)); draw(); }
+  catch { input.value = ''; alert('এই ছবিটি খোলা যায়নি। JPG বা PNG ব্যবহার করুন।\nCould not open this image. Please use a JPG or PNG.'); }
+}
+
+$('photoIn').onchange = e => pick(e.target, img => {
+  photo = img; zoom = 1; ox = oy = 0; $('zoom').value = 1;
+  $('zoomBox').hidden = $('moveHint').hidden = false;
+  $('download').disabled = false;
+  cv.classList.add('movable');
+});
+$('logoIn').onchange = e => pick(e.target, img => { logo = img; $('logoClear').hidden = false; });
+$('logoClear').onclick = () => { logo = null; $('logoIn').value = ''; $('logoClear').hidden = true; draw(); };
+$('zoom').oninput = e => { zoom = +e.target.value; draw(); };
+
+// Drag to reposition the photo
+let last = null;
+cv.onpointerdown = e => { if (photo) { last = e; cv.setPointerCapture(e.pointerId); } };
+cv.onpointermove = e => {
+  if (!last) return;
+  const k = cv.width / cv.clientWidth;   // CSS pixels -> canvas pixels
+  ox += (e.clientX - last.clientX) * k;
+  oy += (e.clientY - last.clientY) * k;
+  last = e;
+  draw();
+};
+cv.onpointerup = cv.onpointercancel = () => { last = null; };
+
+// Optional lead: sent once per distinct set of details, only if something was filled in.
+const form = $('lead');
+let sentLead = '';
+async function sendLead() {
+  const url = form.getAttribute('action');
+  const data = new URLSearchParams(new FormData(form));   // file inputs have no name, so only the 4 text fields
+  const body = data.toString();
+  if (!url || ![...data.values()].some(v => v.trim())) return null;   // nothing to send
+  if (body === sentLead) return true;                                  // already saved
+  sentLead = body;
+  const ok = await fetch(url, { method: 'POST', keepalive: true, body: data }).then(r => r.ok, () => false);
+  if (!ok) sentLead = '';   // not saved: allow another try
+  return ok;
+}
+
+// The Send button submits the form, so the browser validates the email first.
+form.onsubmit = async e => {
+  e.preventDefault();
+  const ok = await sendLead();
+  $('leadMsg').textContent = ok === null ? '' : ok
+    ? '✓ ধন্যবাদ! আপনার তথ্য পেয়েছি। · Thank you! We got your details.'
+    : 'পাঠানো যায়নি, আবার চেষ্টা করুন। · Could not send. Please try again.';
+};
+
+$('download').onclick = () => {
+  if (form.checkValidity()) sendLead();   // also covers people who fill in details first and never press Send
+  cv.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'sme-mela-2026-frame.jpg';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }, 'image/jpeg', 0.95);
+};
+
+frame.onload = draw;
+frame.src = FRAME_SRC;
+</script>
+</body>
+</html>
