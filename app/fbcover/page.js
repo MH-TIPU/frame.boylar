@@ -1,33 +1,35 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Hind_Siliguri } from 'next/font/google';
+import { Galada, Hind_Siliguri } from 'next/font/google';
 import FrameForm from '../../components/FrameForm';
 import { loadImage, pickImage } from '../../lib/image';
 
 // Self-hosted so the Bengali on the canvas looks the same on every device.
 const hind = Hind_Siliguri({ subsets: ['bengali', 'latin'], weight: ['400', '700'], display: 'swap' });
+const galada = Galada({ subsets: ['bengali', 'latin'], weight: '400', display: 'swap' });
 const FONT = hind.style.fontFamily;
+const SCRIPT = galada.style.fontFamily;   // the calligraphic face, used for the title only
 
 // Facebook cover canvas, in its own pixel space (2x the 820x312 it is shown at).
 const W = 1640, H = 624;
 const BAND = 98;                                      // cream partner-logo strip at the top
-const SLOT = { x: 56, w: 380, h: 140 };               // the entrepreneur's own logo
-const STALL = { x: 900, y: 126, w: 684, h: 414 };     // the stall photo
-const FACIA = 92;                                     // signboard strip laid over an uploaded photo
-const TEXT = { x: 56, w: 800 };
-const EYE = { size: 24, line: 32 };                   // which fair this is
-const HEAD = { size: 38, line: 50 };                  // the invitation itself
-const BODY = { size: 29, line: 39 };                  // who, and where to find them
-const NOTE = { size: 26, line: 34 };                  // the entrepreneur's own message
+const TITLE = { y: 155, size: 58, max: 1180 };        // the line every banner shares
+const CONTENT = { y: 196, h: 344 };                   // everything else, above the bottom wave
+const SLOT = { x: 56, y: 244, w: 280, h: 248 };       // the entrepreneur's own logo
+const TEXT = { x: 376, w: 594 };
+const STALL = { x: 1016, y: 196, w: 568, h: 344 };    // the stall, same shape as booth.svg
+const FACIA = 76;                                     // signboard strip laid over an uploaded photo
+const EYE = { size: 26, line: 34 };                   // which fair this is
+const BODY = { size: 32, line: 43 };                  // who, and where to find them
+const NOTE = { size: 27, line: 36 };                  // the entrepreneur's own message
 const FAIR = '১৩তম জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const WELCOME = 'আপনাদের আমন্ত্রণ রইল আমাদের স্টলে';
-const BOTTOM = 540;                                   // content must stay above the bottom wave
 
 const CREAM = '#fffeeb', DARK = '#005c4b', GREEN = '#1ea851', YELLOW = '#ffe600', INK = '#14362c';
 
-// The blank signboard on the standard stall, in that drawing's own 684x414 frame.
-const BOOTH_FACIA = { x: 50, y: 36, w: 422, h: 74 };
+// The blank signboard on the standard stall, as fractions of that drawing's frame.
+const BOOTH_FACIA = { x: 50 / 684, y: 36 / 414, w: 422 / 684, h: 74 / 414 };
 
 const FIXED = {
   booth: '/frames/booth.svg',
@@ -212,11 +214,50 @@ export default function Page() {
     let x = 1592 - widths.reduce((a, b) => a + b, 0) - 28 * (right.length - 1);
     right.forEach(([img, h], i) => { byHeight(ctx, img, x, mid, h); x += widths[i] + 28; });
 
-    // left column, read top to bottom: whose banner this is, which fair, the invitation,
-    // where to find them, then their own words. Centred as one block so it stays
-    // balanced however much text there is.
+    // the one line every banner shares, set in the calligraphic face as the title
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let size = TITLE.size;
+    ctx.font = `400 ${size}px ${SCRIPT}`;
+    let titleW = ctx.measureText(WELCOME).width;
+    if (titleW > TITLE.max) {
+      size = Math.floor(size * TITLE.max / titleW);
+      ctx.font = `400 ${size}px ${SCRIPT}`;
+      titleW = ctx.measureText(WELCOME).width;
+    }
+    ctx.fillStyle = DARK;
+    ctx.fillText(WELCOME, W / 2, TITLE.y);
+    ctx.save();                       // a rule and a diamond either side of it
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = GREEN;
+    ctx.fillStyle = GREEN;
+    ctx.lineWidth = 2.5;
+    for (const dir of [-1, 1]) {
+      const from = W / 2 + dir * (titleW / 2 + 30);
+      ctx.beginPath();
+      ctx.moveTo(from, TITLE.y);
+      ctx.lineTo(from + dir * 64, TITLE.y);
+      ctx.stroke();
+      const tip = from + dir * 78;
+      ctx.beginPath();
+      ctx.moveTo(tip, TITLE.y - 5);
+      ctx.lineTo(tip + 5, TITLE.y);
+      ctx.lineTo(tip, TITLE.y + 5);
+      ctx.lineTo(tip - 5, TITLE.y);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // under the title: the logo, then which fair, who, where and their own words
     const brand = { logo: s.logo, name: business.trim(), number: stallNo.trim() };
-    const head = layout(ctx, [{ text: WELCOME, bold: true }], TEXT.w, HEAD.size);
+    if (s.logo) {
+      const k = Math.min(SLOT.w / s.logo.width, SLOT.h / s.logo.height);
+      ctx.drawImage(s.logo, SLOT.x, SLOT.y + (SLOT.h - s.logo.height * k) / 2, s.logo.width * k, s.logo.height * k);
+    } else {
+      placeholder(ctx, SLOT, 'আপনার লোগো');
+    }
+
     const body = [
       { text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', bold: true },
       { text: brand.number ? 'থাকছে এবারে মেলায় — স্টল নম্বর' : 'থাকছে এবারে মেলায়।' },
@@ -224,33 +265,21 @@ export default function Page() {
     if (brand.number) body.push({ text: brand.number, bold: true, mark: true });
     const lines = layout(ctx, body, TEXT.w, BODY.size);
     const note = message.trim() ? layout(ctx, [{ text: message.trim() }], TEXT.w - 24, NOTE.size) : null;
-    const blockH = SLOT.h + 26 + EYE.line + 6 + head.length * HEAD.line + 12
-      + lines.length * BODY.line + (note ? 22 + note.length * NOTE.line : 0);
-    let y = Math.max(BAND + 16, (BAND + BOTTOM - blockH) / 2);
-
-    if (s.logo) {
-      const k = Math.min(SLOT.w / s.logo.width, SLOT.h / s.logo.height);
-      ctx.drawImage(s.logo, SLOT.x, y + (SLOT.h - s.logo.height * k) / 2, s.logo.width * k, s.logo.height * k);
-    } else {
-      placeholder(ctx, { ...SLOT, y }, 'আপনার লোগো');
-    }
-    y += SLOT.h + 26;
+    const stackH = EYE.line + 8 + lines.length * BODY.line + (note ? 24 + note.length * NOTE.line : 0);
+    let y = CONTENT.y + (CONTENT.h - stackH) / 2;
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.font = font(700, EYE.size);
     ctx.fillStyle = GREEN;
     ctx.fillText(FAIR, TEXT.x, y + EYE.size * 0.8);
-    y += EYE.line + 6;
-
-    drawLines(ctx, head, TEXT.x, y + HEAD.size * 0.8, HEAD.size, HEAD.line, DARK);
-    y += head.length * HEAD.line + 12;
+    y += EYE.line + 8;
 
     drawLines(ctx, lines, TEXT.x, y + BODY.size * 0.8, BODY.size, BODY.line, INK);
     y += lines.length * BODY.line;
 
     if (note) {
-      y += 22;
+      y += 24;
       ctx.fillStyle = GREEN;
       ctx.fillRect(TEXT.x, y, 5, note.length * NOTE.line - 8);
       drawLines(ctx, note, TEXT.x + 24, y + NOTE.size * 0.8, NOTE.size, NOTE.line, '#3c5a4f');
@@ -286,7 +315,10 @@ export default function Page() {
     } else {
       // the standard stall: branded on its own blank signboard
       facia(ctx, {
-        x: STALL.x + BOOTH_FACIA.x, y: STALL.y + BOOTH_FACIA.y, w: BOOTH_FACIA.w, h: BOOTH_FACIA.h,
+        x: STALL.x + BOOTH_FACIA.x * STALL.w,
+        y: STALL.y + BOOTH_FACIA.y * STALL.h,
+        w: BOOTH_FACIA.w * STALL.w,
+        h: BOOTH_FACIA.h * STALL.h,
       }, brand, false);
     }
     ctx.restore();
@@ -305,7 +337,10 @@ export default function Page() {
       if (!alive) return;
       s.fixed = Object.fromEntries(pairs);
       try {
-        await Promise.all([400, 700].map(w => document.fonts.load(font(w, 40))));
+        await Promise.all([
+          ...[400, 700].map(w => document.fonts.load(font(w, 40))),
+          document.fonts.load(`400 ${TITLE.size}px ${SCRIPT}`),
+        ]);
         await document.fonts.ready;
       } catch { /* fall back to whatever the system has */ }
       if (alive) setTick(t => t + 1);
