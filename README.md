@@ -1,22 +1,25 @@
 # frame.boylar
 
-Photo frame maker for frame.boylar.com, built with Next.js. A visitor adds their photo and (optionally) a company logo, sees a live preview, and downloads a 2000×2000 JPG for Facebook and other social media. They can also leave their name, business name, website and email, which are stored in PostgreSQL.
+Free banner makers for frame.boylar.com, built with Next.js. Each page draws a banner on a
+canvas from what the visitor uploads and types, shows a live preview, and downloads a JPG for
+Facebook and other social media. Visitors can also leave their contact details, which are
+stored in PostgreSQL.
 
 ## Pages
 
-- `/smefair` — frame for the 13th National SME Product Fair 2026
-- `/` — redirects to `/smefair` until there is a home page
+- `/` — index of the available banners
+- `/smefair` — put your photo in the 13th National SME Product Fair 2026 frame
+- `/fbcover` — a Facebook cover inviting customers to your stall at the fair
 - `/admin` — table of collected leads with CSV export (user `admin`, password from `ADMIN_PASSWORD`)
 - `POST /api/lead` — stores a lead; each page sends its own `source`
 
 ## Files
 
-- `app/smefair/page.js` — the frame page (canvas preview, download, details form)
-- `public/frames/smefair.jpg` — the frame artwork
-- `app/api/lead/route.js` — saves a lead
-- `app/admin/route.js` — leads table and CSV export
-- `lib/db.js` — PostgreSQL connection
-- `schema.sql` — creates the `leads` table
+- `app/<page>/page.js` — one banner each: canvas drawing, inputs, preview
+- `components/FrameForm.js` — the shared panel: Download plus the optional details we collect
+- `public/frames/` — the SME fair frame artwork, and the standard stall drawing used on `/fbcover`
+- `public/logos/` — the fixed partner logos, cut out with transparent backgrounds
+- `app/api/lead/route.js`, `app/admin/route.js`, `lib/db.js`, `schema.sql` — lead storage
 
 ## Run locally
 
@@ -38,8 +41,13 @@ npm run build
 npm start -- -p 3003
 ```
 
-Put `DATABASE_URL` and `ADMIN_PASSWORD` in `.env` on the server (not in git). Serve it over HTTPS: the admin password is sent with every request to `/admin`.
+Put `DATABASE_URL` and `ADMIN_PASSWORD` in `.env` on the server (not in git). Serve it over
+HTTPS: the admin password is sent with every request to `/admin`.
 
-## Changing the frame
+## Adding a banner
 
-Replace `public/frames/smefair.jpg`. If the photo circle or logo slot moved, update `CIRCLE` and `LOGO` at the top of `app/smefair/page.js`.
+Copy a folder under `app/`, give it its own canvas geometry and artwork, pass a new `source`
+to `FrameForm`, then list it in `app/page.js` and `app/sitemap.js`.
+
+`/fbcover` draws its Bengali text on the canvas with Hind Siliguri, loaded through
+`next/font/google`, so the build needs network access the first time.

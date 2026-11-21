@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1368" height="828" viewBox="0 0 684 414" role="img" aria-label="A standard exhibition stall with a blank facia">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#495564"/>
+      <stop offset="1" stop-color="#232a33"/>
+    </linearGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e4e9ed"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f1f5f8"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f3741"/>
+      <stop offset="1" stop-color="#151a20"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff6cf" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#fff6cf" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="684" height="414" fill="url(#bg)"/>
+  <rect y="338" width="684" height="76" fill="url(#floor)"/>
+
+  <!-- spotlights clipped to the facia, so the stall number sits in a pool of light -->
+  <g fill="#39424d">
+    <rect x="152" y="12" width="26" height="9" rx="4"/>
+    <rect x="329" y="12" width="26" height="9" rx="4"/>
+    <rect x="506" y="12" width="26" height="9" rx="4"/>
+  </g>
+
+  <!-- facia: the blank signboard the stall number is printed on -->
+  <rect x="50" y="24" width="584" height="98" rx="4" fill="#aebcc7"/>
+  <rect x="56" y="30" width="572" height="86" fill="url(#panel)"/>
+  <path d="M100 30h156l-40 86H140z M294 30h156l-40 86H334z M488 30h156l-40 86H528z" fill="url(#glow)"/>
+
+  <!-- side posts and the panelled back wall -->
+  <rect x="44" y="24" width="14" height="316" rx="3" fill="#c3cfd8"/>
+  <rect x="626" y="24" width="14" height="316" rx="3" fill="#c3cfd8"/>
+  <rect x="58" y="122" width="568" height="218" fill="url(#wall)"/>
+  <g stroke="#d6dde3" stroke-width="2">
+    <path d="M129 122v218M200 122v218M271 122v218M342 122v218M413 122v218M484 122v218M555 122v218"/>
+  </g>
+  <rect x="58" y="122" width="568" height="6" fill="#dfe5ea"/>
+
+  <!-- counter and two chairs -->
+  <rect x="252" y="286" width="38" height="54" rx="6" fill="#b4352d"/>
+  <rect x="252" y="272" width="38" height="22" rx="8" fill="#c8453c"/>
+  <rect x="394" y="286" width="38" height="54" rx="6" fill="#b4352d"/>
+  <rect x="394" y="272" width="38" height="22" rx="8" fill="#c8453c"/>
+  <rect x="296" y="250" width="92" height="90" fill="#fbfcfd"/>
+  <rect x="290" y="244" width="104" height="12" rx="3" fill="#39434d"/>
+  <rect x="296" y="250" width="92" height="90" fill="none" stroke="#dde3e8" stroke-width="2"/>
+
+  <!-- floor reflection -->
+  <rect x="58" y="340" width="568" height="34" fill="#ffffff" opacity=".07"/>
+  <rect x="296" y="340" width="92" height="22" fill="#ffffff" opacity=".07"/>
+</svg>
