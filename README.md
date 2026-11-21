@@ -18,7 +18,9 @@ stored in PostgreSQL.
 
 - `app/<page>/page.js` — one banner each: canvas drawing, inputs, preview
 - `components/FrameForm.js` — the shared panel: Download plus the optional details we collect
-- `public/frames/` — the SME fair frame artwork, and the standard stall drawing used on `/fbcover`
+- `public/frames/` — the standard stall and the kantha ground for `/fbcover`, the trade motifs
+  for `/smefair`. `smefair.jpg` is the fair's original artwork and is no longer loaded: that
+  page draws its sky, bands, circle and headline itself.
 - `public/logos/` — the fixed partner logos, cut out with transparent backgrounds
 - `app/api/lead/route.js`, `app/admin/route.js`, `lib/db.js`, `schema.sql` — lead storage
 
