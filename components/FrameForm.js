@@ -46,7 +46,7 @@ export default function FrameForm({ source, fileName, canvasRef, canDownload, st
       a.download = fileName;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    }, 'image/jpeg', 0.95);
+    }, 'image/jpeg', 0.97);
   }
 
   return (

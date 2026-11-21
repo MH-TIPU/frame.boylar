@@ -31,6 +31,7 @@ main.stack canvas { position: static; }
 .step b { display: block; margin-bottom: 14px; font-size: 1.05rem; }
 .step b span { margin-left: 6px; font-size: .9rem; font-weight: 400; color: var(--muted); }
 .step small { display: block; margin-top: 12px; line-height: 1.55; color: var(--muted); }
+.step small.warn { color: #b3261e; }
 
 input[type=file] { width: 100%; font: inherit; }
 input[type=file]::file-selector-button { font: inherit; margin-right: 12px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 6px; background: #f3f6f4; cursor: pointer; }

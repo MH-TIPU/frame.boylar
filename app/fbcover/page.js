@@ -13,12 +13,15 @@ const FONT = hind.style.fontFamily;
 const SCRIPT = galada.style.fontFamily;   // the curved face, used for the slogan
 
 // Facebook cover canvas, in its own pixel space (2x the 820x312 it is shown at).
-const W = 1640, H = 624;
+// SCALE renders that space onto a larger bitmap: every fixed logo is still drawn
+// smaller than its source file, so this costs nothing in sharpness.
+const W = 1640, H = 624, SCALE = 2;
 const BAND = 98;                                      // cream partner-logo strip at the top
 const CONTENT = { y: 112, h: 452 };                   // everything under the band
 const SLOT = { x: 56, w: 300, h: 120 };               // the entrepreneur's own logo
 const TEXT = { x: 56, w: 860 };
 const STALL = { x: 950, y: 112, w: 634, h: 384 };     // the stall, same shape as booth.svg
+const NEED = { w: STALL.w * SCALE, h: STALL.h * SCALE };   // the photo size the slot can use
 const FACIA = 84;                                     // signboard strip laid over an uploaded photo
 const MARK = { right: 1584, y: 520, h: 58 };          // the organiser's logo, under the stall
 const SLOGAN = { size: 46, line: 60 };                // the entrepreneur's own line, set in the curved face
@@ -214,12 +217,14 @@ export default function Page() {
   const [business, setBusiness] = useState('');
   const [stallNo, setStallNo] = useState('');
   const [message, setMessage] = useState('');
+  const [lowRes, setLowRes] = useState(false);
   const [tick, setTick] = useState(0);   // bumped when the fixed logos and font are ready
 
   function draw() {
     const cv = canvas.current;
     if (!cv) return;
     const ctx = cv.getContext('2d');
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);   // draw in W x H units, output larger
 
     // nakshi kantha cloth behind everything
     if (s.fixed.kantha) {
@@ -374,12 +379,14 @@ export default function Page() {
     Object.assign(s, { stall: img, zoom: 1, ox: 0, oy: 0 });
     setZoom(1);
     setHasStall(true);
+    setLowRes(img.width < NEED.w || img.height < NEED.h);
   }, draw);
   const clearStall = () => {
     Object.assign(s, { stall: null, zoom: 1, ox: 0, oy: 0 });
     stallInput.current.value = '';
     setZoom(1);
     setHasStall(false);
+    setLowRes(false);
     draw();
   };
   const changeZoom = e => { s.zoom = +e.target.value; setZoom(s.zoom); draw(); };
@@ -413,7 +420,7 @@ export default function Page() {
       </header>
       <main className="stack">
         <canvas
-          ref={canvas} width={W} height={H} aria-label="Cover preview"
+          ref={canvas} width={W * SCALE} height={H * SCALE} aria-label="Cover preview"
           className={hasStall ? 'movable' : undefined}
           onPointerDown={dragStart} onPointerMove={dragMove} onPointerUp={dragEnd} onPointerCancel={dragEnd}
         />
@@ -441,6 +448,11 @@ export default function Page() {
                   <input type="range" min="1" max="3" step="0.01" value={zoom} onChange={changeZoom} />
                 </label>
                 <small>ছবি টেনে সরান · Drag the photo to reposition</small>
+                {lowRes && (
+                  <small className="warn">
+                    ছবিটি ছোট, তাই একটু ঝাপসা আসবে — অন্তত {NEED.w}×{NEED.h} পিক্সেলের ছবি দিন।
+                  </small>
+                )}
                 <button className="link" type="button" onClick={clearStall}>সাধারণ স্টল ব্যবহার করুন · Use the standard stall</button>
               </>
             ) : (
