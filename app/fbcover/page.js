@@ -1,25 +1,26 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Hind_Siliguri } from 'next/font/google';
+import { Galada, Hind_Siliguri } from 'next/font/google';
 import FrameForm from '../../components/FrameForm';
 import { loadImage, pickImage } from '../../lib/image';
 
 // Self-hosted so the Bengali on the canvas looks the same on every device.
 const hind = Hind_Siliguri({ subsets: ['bengali', 'latin'], weight: ['300', '400', '700'], display: 'swap' });
+const galada = Galada({ subsets: ['bengali', 'latin'], weight: '400', display: 'swap' });
 const FONT = hind.style.fontFamily;
+const SCRIPT = galada.style.fontFamily;   // the curved face, used for the slogan
 
 // Facebook cover canvas, in its own pixel space (2x the 820x312 it is shown at).
 const W = 1640, H = 624;
 const BAND = 98;                                      // cream partner-logo strip at the top
-const CONTENT = { y: 112, h: 440 };                   // everything under the band
+const CONTENT = { y: 112, h: 452 };                   // everything under the band
 const SLOT = { x: 56, w: 300, h: 120 };               // the entrepreneur's own logo
 const TEXT = { x: 56, w: 860 };
 const STALL = { x: 950, y: 112, w: 634, h: 384 };     // the stall, same shape as booth.svg
 const FACIA = 84;                                     // signboard strip laid over an uploaded photo
-const MARK = { right: 1584, y: 506, h: 48 };          // the organiser's logo, under the stall
-const WAVE = { yellow: 564, green: 582, dip: 18 };    // a shallow foot, so it stays out of the way
-const SLOGAN = { size: 40, line: 52 };                // the entrepreneur's own line, set light
+const MARK = { right: 1584, y: 508, h: 48 };          // the organiser's logo, under the stall
+const SLOGAN = { size: 46, line: 60 };                // the entrepreneur's own line, set in the curved face
 const BODY = { size: 30, line: 40 };                  // who, and where to find them
 const META = { size: 24, line: 32 };                  // when and where the fair is
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
@@ -32,12 +33,13 @@ const CREAM = '#fffeeb', DARK = '#005c4b', GREEN = '#1ea851', YELLOW = '#ffe600'
 const BOOTH_FACIA = { x: 50 / 684, y: 36 / 414, w: 422 / 684, h: 74 / 414 };
 
 const FIXED = {
+  kantha: '/frames/kantha.svg',
   booth: '/frames/booth.svg',
   mela: '/logos/mela2026.png',
   bdosn: '/logos/bdosn.png',
 };
 
-const font = (weight, size) => `${weight} ${size}px ${FONT}`;
+const font = (weight, size, family = FONT) => `${weight} ${size}px ${family}`;
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -156,7 +158,7 @@ function layout(ctx, runs, maxW, size) {
   let line = [], width = 0;
   for (const run of runs) {
     for (const word of String(run.text).split(/\s+/).filter(Boolean)) {
-      ctx.font = font(run.weight || 400, size);
+      ctx.font = font(run.weight || 400, size, run.family);
       const w = ctx.measureText(word).width;
       const space = line.length ? ctx.measureText(' ').width : 0;
       if (line.length && width + space + w > maxW) {
@@ -180,7 +182,7 @@ function drawLines(ctx, lines, x, baseline, size, lineH, colour) {
     let cx = x;
     for (const item of line) {
       cx += item.gap;
-      ctx.font = font(item.weight || 400, size);
+      ctx.font = font(item.weight || 400, size, item.family);
       if (item.mark) {
         ctx.fillStyle = YELLOW;
         roundRect(ctx, cx - 9, y - size * 0.82, item.w + 18, size * 1.12, 7);
@@ -211,56 +213,46 @@ export default function Page() {
     if (!cv) return;
     const ctx = cv.getContext('2d');
 
-    const sky = ctx.createLinearGradient(0, BAND, 0, H);
-    sky.addColorStop(0, '#faf8ec');
-    sky.addColorStop(0.55, '#f1efdc');
-    sky.addColorStop(1, '#e4e1c6');
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, W, H);
-
-    // a soft wash behind the stall, so the right half lifts off the page
-    const glow = ctx.createRadialGradient(1260, 280, 30, 1260, 280, 560);
-    glow.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
-    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, BAND, W, H - BAND);
-
-    // the yellow/green foot, kept shallow so it does not crowd what sits above it
-    for (const [colour, top] of [[YELLOW, WAVE.yellow], [DARK, WAVE.green]]) {
-      ctx.fillStyle = colour;
-      ctx.beginPath();
-      ctx.moveTo(0, top);
-      ctx.quadraticCurveTo(W / 2, top + WAVE.dip * 2, W, top);
-      ctx.lineTo(W, H);
-      ctx.lineTo(0, H);
-      ctx.closePath();
-      ctx.fill();
+    // nakshi kantha cloth behind everything
+    if (s.fixed.kantha) {
+      ctx.drawImage(s.fixed.kantha, 0, 0, W, H);
+    } else {
+      ctx.fillStyle = '#f6f0dd';
+      ctx.fillRect(0, 0, W, H);
     }
 
-    // cream band carrying the fair's own lockup: its logo, then its name
+    // cream band: the fair's logo at the left, its name centred across the banner
+    const mid = BAND / 2;
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, 0, W, BAND);
-    ctx.fillStyle = GREEN;
-    ctx.fillRect(0, BAND, W, 5);
-    ctx.fillStyle = YELLOW;
-    ctx.fillRect(0, BAND + 5, W, 3);
-    const mid = BAND / 2;
-    const melaW = byHeight(ctx, s.fixed.mela, 56, mid, 70);
+    byHeight(ctx, s.fixed.mela, 56, mid, 70);
     ctx.font = font(700, 36);
-    ctx.textAlign = 'left';
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = DARK;
-    ctx.fillText(FAIR, 56 + melaW + 26, mid + 1);
+    ctx.fillText(FAIR, W / 2, mid + 1);
+    ctx.save();                       // a line of kantha stitch closes the band off
+    ctx.strokeStyle = '#b4452f';
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 2.6;
+    ctx.setLineDash([11, 9]);
+    ctx.beginPath();
+    ctx.moveTo(0, BAND + 3);
+    ctx.lineTo(W, BAND + 3);
+    ctx.stroke();
+    ctx.restore();
 
     // left column, top to bottom: the logo, their slogan set light and large,
     // then who they are, when the fair runs and where it is
     const brand = { logo: s.logo, name: business.trim(), number: stallNo.trim() };
-    const slogan = message.trim() ? layout(ctx, [{ text: message.trim(), weight: 300 }], TEXT.w, SLOGAN.size) : null;
+    const slogan = message.trim()
+      ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], TEXT.w, SLOGAN.size)
+      : null;
     const body = [
       { text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 },
-      { text: brand.number ? 'থাকছে এবারে মেলায় — স্টল নম্বর' : 'থাকছে এবারে মেলায়।' },
+      { text: brand.number ? 'থাকছে এবারের মেলায় - স্টল নম্বর' : 'থাকছে এবারের মেলায়।' },
     ];
-    if (brand.number) body.push({ text: brand.number, weight: 700, mark: true });
+    if (brand.number) body.push({ text: `${brand.number}-এ`, weight: 700, mark: true });
     const lines = layout(ctx, body, TEXT.w, BODY.size);
     const metaW = TEXT.w - META.size - 14;
     const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
@@ -349,7 +341,10 @@ export default function Page() {
       if (!alive) return;
       s.fixed = Object.fromEntries(pairs);
       try {
-        await Promise.all([300, 400, 700].map(w => document.fonts.load(font(w, 40))));
+        await Promise.all([
+          ...[300, 400, 700].map(w => document.fonts.load(font(w, 40))),
+          document.fonts.load(font(400, SLOGAN.size, SCRIPT)),
+        ]);
         await document.fonts.ready;
       } catch { /* fall back to whatever the system has */ }
       if (alive) setTick(t => t + 1);
