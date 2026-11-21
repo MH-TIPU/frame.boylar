@@ -12,9 +12,9 @@ const FONT = hind.style.fontFamily;
 
 // Geometry in the frame's own 2000x2000 pixel space (measured from public/frames/smefair.jpg).
 const SIZE = 2000;
-const CIRCLE = { x: 700, y: 930, r: 380 };
-const HEAD = ['আমি আসছি', 'আপনি আসছেন তো?'];
-const HEAD_BOX = { x: 1200, w: 740, mid: 930 };     // clear of the circle and its ring
+const CIRCLE = { x: 660, y: 930, r: 350 };
+const HEAD = ['আমি আসছি', 'আপনি আসছেন', 'তো?'];
+const HEAD_BOX = { x: 1080, w: 880, mid: 930 };     // clear of the circle and its ring
 // soft light through the sky: x, y, radius, strength
 const PUFFS = [
   [250, 520, 420, 0.55], [1520, 470, 450, 0.5], [1780, 1180, 380, 0.42],
@@ -135,8 +135,9 @@ export default function Page() {
     ctx.arc(CIRCLE.x, CIRCLE.y, CIRCLE.r + 28, 0, Math.PI * 2);
     ctx.stroke();
 
-    // the headline, set in two lines and sized to the room beside the photo
-    let head = 108;
+    // the headline, set in two lines and sized to the room beside the photo. Hind
+    // Siliguri stops at 700, so a hairline stroke carries it the rest of the way.
+    let head = 172;
     ctx.font = `700 ${head}px ${FONT}`;
     const widest = Math.max(...HEAD.map(t => ctx.measureText(t).width));
     if (widest > HEAD_BOX.w) {
@@ -146,8 +147,14 @@ export default function Page() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = DARK;
+    ctx.strokeStyle = DARK;
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = head * 0.03;
     HEAD.forEach((line, i) => {
-      ctx.fillText(line, HEAD_BOX.x + HEAD_BOX.w / 2, HEAD_BOX.mid + (i - 0.5) * head * 1.34);
+      const x = HEAD_BOX.x + HEAD_BOX.w / 2;
+      const y = HEAD_BOX.mid + (i - (HEAD.length - 1) / 2) * head * 1.2;
+      ctx.fillText(line, x, y);
+      ctx.strokeText(line, x, y);
     });
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
