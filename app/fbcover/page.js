@@ -1,33 +1,30 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Galada, Hind_Siliguri } from 'next/font/google';
+import { Hind_Siliguri } from 'next/font/google';
 import FrameForm from '../../components/FrameForm';
 import { loadImage, pickImage } from '../../lib/image';
 
 // Self-hosted so the Bengali on the canvas looks the same on every device.
-const hind = Hind_Siliguri({ subsets: ['bengali', 'latin'], weight: ['400', '700'], display: 'swap' });
-const galada = Galada({ subsets: ['bengali', 'latin'], weight: '400', display: 'swap' });
+const hind = Hind_Siliguri({ subsets: ['bengali', 'latin'], weight: ['300', '400', '700'], display: 'swap' });
 const FONT = hind.style.fontFamily;
-const SCRIPT = galada.style.fontFamily;   // the calligraphic face, used for the title only
 
 // Facebook cover canvas, in its own pixel space (2x the 820x312 it is shown at).
 const W = 1640, H = 624;
 const BAND = 98;                                      // cream partner-logo strip at the top
-const TITLE = { y: 155, size: 58, max: 1180 };        // the line every banner shares
-const CONTENT = { y: 196, h: 336 };                   // everything else, above the bottom wave
-const SLOT = { x: 56, y: 240, w: 280, h: 248 };       // the entrepreneur's own logo
-const TEXT = { x: 376, w: 594 };
-const STALL = { x: 1029, y: 196, w: 555, h: 336 };    // the stall, same shape as booth.svg
-const FACIA = 74;                                     // signboard strip laid over an uploaded photo
-const WAVE = { yellow: 536, green: 560 };             // the dipped foot, and where content must stop
-const BODY = { size: 32, line: 43 };                  // who, and where to find them
-const META = { size: 26, line: 36 };                  // when and where the fair is
-const NOTE = { size: 27, line: 36 };                  // the entrepreneur's own message
+const CONTENT = { y: 112, h: 440 };                   // everything under the band
+const SLOT = { x: 56, w: 300, h: 120 };               // the entrepreneur's own logo
+const TEXT = { x: 56, w: 860 };
+const STALL = { x: 950, y: 112, w: 634, h: 384 };     // the stall, same shape as booth.svg
+const FACIA = 84;                                     // signboard strip laid over an uploaded photo
+const MARK = { right: 1584, y: 506, h: 48 };          // the organiser's logo, under the stall
+const WAVE = { yellow: 564, green: 582, dip: 18 };    // a shallow foot, so it stays out of the way
+const SLOGAN = { size: 40, line: 52 };                // the entrepreneur's own line, set light
+const BODY = { size: 30, line: 40 };                  // who, and where to find them
+const META = { size: 24, line: 32 };                  // when and where the fair is
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const DATES = '২২ থেকে ২৮ নভেম্বর ২০২৬';
 const VENUE = 'স্থান: বাংলাদেশ-চীন মৈত্রী সম্মেলন কেন্দ্র, আগারগাঁও, ঢাকা';
-const WELCOME = 'আপনাদের আমন্ত্রণ রইল আমাদের স্টলে';
 
 const CREAM = '#fffeeb', DARK = '#005c4b', GREEN = '#1ea851', YELLOW = '#ffe600', INK = '#14362c';
 
@@ -159,7 +156,7 @@ function layout(ctx, runs, maxW, size) {
   let line = [], width = 0;
   for (const run of runs) {
     for (const word of String(run.text).split(/\s+/).filter(Boolean)) {
-      ctx.font = font(run.bold ? 700 : 400, size);
+      ctx.font = font(run.weight || 400, size);
       const w = ctx.measureText(word).width;
       const space = line.length ? ctx.measureText(' ').width : 0;
       if (line.length && width + space + w > maxW) {
@@ -183,7 +180,7 @@ function drawLines(ctx, lines, x, baseline, size, lineH, colour) {
     let cx = x;
     for (const item of line) {
       cx += item.gap;
-      ctx.font = font(item.bold ? 700 : 400, size);
+      ctx.font = font(item.weight || 400, size);
       if (item.mark) {
         ctx.fillStyle = YELLOW;
         roundRect(ctx, cx - 9, y - size * 0.82, item.w + 18, size * 1.12, 7);
@@ -215,17 +212,25 @@ export default function Page() {
     const ctx = cv.getContext('2d');
 
     const sky = ctx.createLinearGradient(0, BAND, 0, H);
-    sky.addColorStop(0, '#f5f3e1');
-    sky.addColorStop(1, '#e5e2c7');
+    sky.addColorStop(0, '#faf8ec');
+    sky.addColorStop(0.55, '#f1efdc');
+    sky.addColorStop(1, '#e4e1c6');
     ctx.fillStyle = sky;
     ctx.fillRect(0, 0, W, H);
 
-    // the dipped yellow/green foot, echoing the smefair frame
+    // a soft wash behind the stall, so the right half lifts off the page
+    const glow = ctx.createRadialGradient(1260, 280, 30, 1260, 280, 560);
+    glow.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, BAND, W, H - BAND);
+
+    // the yellow/green foot, kept shallow so it does not crowd what sits above it
     for (const [colour, top] of [[YELLOW, WAVE.yellow], [DARK, WAVE.green]]) {
       ctx.fillStyle = colour;
       ctx.beginPath();
       ctx.moveTo(0, top);
-      ctx.quadraticCurveTo(W / 2, top + 76, W, top);
+      ctx.quadraticCurveTo(W / 2, top + WAVE.dip * 2, W, top);
       ctx.lineTo(W, H);
       ctx.lineTo(0, H);
       ctx.closePath();
@@ -239,87 +244,51 @@ export default function Page() {
     ctx.fillRect(0, BAND, W, 5);
     ctx.fillStyle = YELLOW;
     ctx.fillRect(0, BAND + 5, W, 3);
-    const mid = BAND / 2, mela = s.fixed.mela;
+    const mid = BAND / 2;
+    const melaW = byHeight(ctx, s.fixed.mela, 56, mid, 70);
     ctx.font = font(700, 36);
-    const fairW = ctx.measureText(FAIR).width;
-    const melaW = mela ? mela.width * 70 / mela.height : 0;
-    const lockup = (W - melaW - 26 - fairW) / 2;
-    byHeight(ctx, mela, lockup, mid, 70);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = DARK;
-    ctx.fillText(FAIR, lockup + melaW + 26, mid + 1);
+    ctx.fillText(FAIR, 56 + melaW + 26, mid + 1);
 
-    // the one line every banner shares, set in the calligraphic face as the title
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    let size = TITLE.size;
-    ctx.font = `400 ${size}px ${SCRIPT}`;
-    let titleW = ctx.measureText(WELCOME).width;
-    if (titleW > TITLE.max) {
-      size = Math.floor(size * TITLE.max / titleW);
-      ctx.font = `400 ${size}px ${SCRIPT}`;
-      titleW = ctx.measureText(WELCOME).width;
-    }
-    ctx.fillStyle = DARK;
-    ctx.fillText(WELCOME, W / 2, TITLE.y);
-    ctx.save();                       // a rule and a diamond either side of it
-    ctx.globalAlpha = 0.5;
-    ctx.strokeStyle = GREEN;
-    ctx.fillStyle = GREEN;
-    ctx.lineWidth = 2.5;
-    for (const dir of [-1, 1]) {
-      const from = W / 2 + dir * (titleW / 2 + 30);
-      ctx.beginPath();
-      ctx.moveTo(from, TITLE.y);
-      ctx.lineTo(from + dir * 64, TITLE.y);
-      ctx.stroke();
-      const tip = from + dir * 78;
-      ctx.beginPath();
-      ctx.moveTo(tip, TITLE.y - 5);
-      ctx.lineTo(tip + 5, TITLE.y);
-      ctx.lineTo(tip, TITLE.y + 5);
-      ctx.lineTo(tip - 5, TITLE.y);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.restore();
-
-    // under the title: the logo, then which fair, who, where and their own words
+    // left column, top to bottom: the logo, their slogan set light and large,
+    // then who they are, when the fair runs and where it is
     const brand = { logo: s.logo, name: business.trim(), number: stallNo.trim() };
-    if (s.logo) {
-      const k = Math.min(SLOT.w / s.logo.width, SLOT.h / s.logo.height);
-      ctx.drawImage(s.logo, SLOT.x, SLOT.y + (SLOT.h - s.logo.height * k) / 2, s.logo.width * k, s.logo.height * k);
-    } else {
-      placeholder(ctx, SLOT, 'আপনার লোগো');
-    }
-
+    const slogan = message.trim() ? layout(ctx, [{ text: message.trim(), weight: 300 }], TEXT.w, SLOGAN.size) : null;
     const body = [
-      { text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', bold: true },
+      { text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 },
       { text: brand.number ? 'থাকছে এবারে মেলায় — স্টল নম্বর' : 'থাকছে এবারে মেলায়।' },
     ];
-    if (brand.number) body.push({ text: brand.number, bold: true, mark: true });
+    if (brand.number) body.push({ text: brand.number, weight: 700, mark: true });
     const lines = layout(ctx, body, TEXT.w, BODY.size);
     const metaW = TEXT.w - META.size - 14;
     const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
     const venue = layout(ctx, [{ text: VENUE }], metaW, META.size);
-    const note = message.trim() ? layout(ctx, [{ text: message.trim() }], TEXT.w - 24, NOTE.size) : null;
-    const stackH = lines.length * BODY.line + 20 + (dates.length + venue.length) * META.line + 8
-      + (note ? 22 + note.length * NOTE.line : 0);
-    let y = CONTENT.y + (CONTENT.h - stackH) / 2;
+    const stackH = SLOT.h + (slogan ? 26 + slogan.length * SLOGAN.line : 0) + 26
+      + lines.length * BODY.line + 20 + (dates.length + venue.length) * META.line + 8;
+    let y = CONTENT.y + Math.max(0, (CONTENT.h - stackH) / 2);
+
+    if (s.logo) {
+      const k = Math.min(SLOT.w / s.logo.width, SLOT.h / s.logo.height);
+      ctx.drawImage(s.logo, SLOT.x, y + (SLOT.h - s.logo.height * k) / 2, s.logo.width * k, s.logo.height * k);
+    } else {
+      placeholder(ctx, { ...SLOT, y }, 'আপনার লোগো');
+    }
+    y += SLOT.h;
+
+    if (slogan) {
+      y += 26;
+      drawLines(ctx, slogan, TEXT.x, y + SLOGAN.size * 0.8, SLOGAN.size, SLOGAN.line, DARK);
+      y += slogan.length * SLOGAN.line;
+    }
+    y += 26;
 
     drawLines(ctx, lines, TEXT.x, y + BODY.size * 0.8, BODY.size, BODY.line, INK);
     y += lines.length * BODY.line + 20;
 
     y += detail(ctx, calendarIcon, dates, TEXT.x, y, '#2f4a40') + 8;
-    y += detail(ctx, pinIcon, venue, TEXT.x, y, '#2f4a40');
-
-    if (note) {
-      y += 22;
-      ctx.fillStyle = GREEN;
-      ctx.fillRect(TEXT.x, y, 5, note.length * NOTE.line - 8);
-      drawLines(ctx, note, TEXT.x + 24, y + NOTE.size * 0.8, NOTE.size, NOTE.line, '#3c5a4f');
-    }
+    detail(ctx, pinIcon, venue, TEXT.x, y, '#2f4a40');
 
     // the stall: the entrepreneur's own photo if they have one, otherwise the standard
     // stall drawing. The number goes on a facia either way.
@@ -363,16 +332,11 @@ export default function Page() {
     ctx.strokeStyle = CREAM;
     ctx.stroke();
 
-    // the organiser's mark, bottom right in the foot
+    // the organiser's mark, under the stall and clear of the foot
     const bdosn = s.fixed.bdosn;
     if (bdosn) {
-      const h = 40, w = bdosn.width * h / bdosn.height;
-      const plateW = w + 24, plateH = h + 16;
-      const px = 1584 - plateW, py = 618 - plateH;
-      ctx.fillStyle = CREAM;
-      roundRect(ctx, px, py, plateW, plateH, 8);
-      ctx.fill();
-      ctx.drawImage(bdosn, px + 12, py + 8, w, h);
+      const w = bdosn.width * MARK.h / bdosn.height;
+      ctx.drawImage(bdosn, MARK.right - w, MARK.y, w, MARK.h);
     }
   }
 
@@ -385,10 +349,7 @@ export default function Page() {
       if (!alive) return;
       s.fixed = Object.fromEntries(pairs);
       try {
-        await Promise.all([
-          ...[400, 700].map(w => document.fonts.load(font(w, 40))),
-          document.fonts.load(`400 ${TITLE.size}px ${SCRIPT}`),
-        ]);
+        await Promise.all([300, 400, 700].map(w => document.fonts.load(font(w, 40))));
         await document.fonts.ready;
       } catch { /* fall back to whatever the system has */ }
       if (alive) setTick(t => t + 1);
@@ -490,8 +451,8 @@ export default function Page() {
                 <input value={stallNo} maxLength={12} onChange={e => setStallNo(e.target.value)} placeholder="১২৩" />
               </label>
             </div>
-            <label>কাস্টম বার্তা · Custom message (optional)
-              <textarea value={message} maxLength={120} rows={2} onChange={e => setMessage(e.target.value)} placeholder="আপনার স্লোগান বা যেকোনো বার্তা" />
+            <label>স্লোগান · Slogan (optional)
+              <textarea value={message} maxLength={90} rows={2} onChange={e => setMessage(e.target.value)} placeholder="আপনার স্লোগান বা যেকোনো বার্তা" />
             </label>
           </div>
         </FrameForm>
