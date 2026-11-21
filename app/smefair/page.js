@@ -25,7 +25,7 @@ export default function Page() {
   const canvas = useRef(null);
   const logoInput = useRef(null);
   // What the canvas draws. Kept in a ref (not state) so dragging redraws without re-rendering.
-  const s = useRef({ frame: null, mela: null, chakri: null, photo: null, logo: null, zoom: 1, ox: 0, oy: 0, last: null }).current;
+  const s = useRef({ frame: null, motifs: null, mela: null, chakri: null, photo: null, logo: null, zoom: 1, ox: 0, oy: 0, last: null }).current;
   const [hasPhoto, setHasPhoto] = useState(false);
   const [hasLogo, setHasLogo] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -34,6 +34,7 @@ export default function Page() {
     if (!s.frame) return;
     const ctx = canvas.current.getContext('2d');
     ctx.drawImage(s.frame, 0, 0, SIZE, SIZE);
+    if (s.motifs) ctx.drawImage(s.motifs, 0, 0, SIZE, SIZE);   // small trades over the sky
 
     // paint out the artwork's heavy ring, fading into the cloud so there is no seam
     const mat = ctx.createRadialGradient(CIRCLE.x, CIRCLE.y, 0, CIRCLE.x, CIRCLE.y, MAT.outer);
@@ -118,13 +119,14 @@ export default function Page() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [frame, mela, chakri] = await Promise.all([
+      const [frame, motifs, mela, chakri] = await Promise.all([
         loadImage('/frames/smefair.jpg'),
+        loadImage('/frames/smemotifs.svg').catch(() => null),
         loadImage('/logos/mela2026.png').catch(() => null),
         loadImage('/logos/chakri.png').catch(() => null),
       ]);
       if (!alive) return;
-      Object.assign(s, { frame, mela, chakri });
+      Object.assign(s, { frame, motifs, mela, chakri });
       try {
         await Promise.all([400, 700].map(w => document.fonts.load(`${w} 52px ${FONT}`)));
         await document.fonts.ready;
