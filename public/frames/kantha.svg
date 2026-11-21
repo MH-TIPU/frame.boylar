@@ -11,8 +11,8 @@
 
     <!-- the kantha stitch itself: fine broken rows right across the cloth -->
     <pattern id="field" width="40" height="13" patternUnits="userSpaceOnUse">
-      <path d="M0 6.5h40" stroke="#cdbc93" stroke-width="1.4" stroke-dasharray="9 7" opacity=".2"/>
-      <path d="M20 13h40" stroke="#cdbc93" stroke-width="1.4" stroke-dasharray="9 7" opacity=".2"/>
+      <path d="M0 6.5h40" stroke="#cdbc93" stroke-width="1.4" stroke-dasharray="9 7" opacity=".12"/>
+      <path d="M20 13h40" stroke="#cdbc93" stroke-width="1.4" stroke-dasharray="9 7" opacity=".12"/>
     </pattern>
 
     <g id="bud">
@@ -20,10 +20,10 @@
       <path d="M-10 0C-5-4.5 5-4.5 10 0C5 4.5-5 4.5-10 0Z"/>
     </g>
     <pattern id="buds" width="150" height="150" patternUnits="userSpaceOnUse">
-      <use href="#bud" x="38" y="38" fill="#b4452f" opacity=".06"/>
-      <use href="#bud" x="113" y="113" fill="#2f5d7a" opacity=".05"/>
-      <circle cx="113" cy="38" r="3" fill="#3f7a4a" opacity=".08"/>
-      <circle cx="38" cy="113" r="3" fill="#c8922a" opacity=".08"/>
+      <use href="#bud" x="38" y="38" fill="#b4452f" opacity=".04"/>
+      <use href="#bud" x="113" y="113" fill="#2f5d7a" opacity=".035"/>
+      <circle cx="113" cy="38" r="3" fill="#3f7a4a" opacity=".05"/>
+      <circle cx="38" cy="113" r="3" fill="#c8922a" opacity=".05"/>
     </pattern>
 
     <!-- lotus medallion, drawn once and reused in each corner -->
@@ -80,6 +80,28 @@
       <circle cx="44" cy="39" r="4" stroke="#2f5d7a" stroke-width="1.8"/>
     </g>
 
+    <!-- মাটির হাঁড়ি: the potter's trade -->
+    <g id="pot" fill="none" stroke-linecap="round" stroke-dasharray="6 5">
+      <path d="M15 15C3 23-3 41 3 53C9 65 35 65 41 53C47 41 41 23 29 15Z" stroke="#b4452f" stroke-width="2.4"/>
+      <path d="M11 13h22" stroke="#3f7a4a" stroke-width="2.4"/>
+      <path d="M4 35h36" stroke="#c8922a" stroke-width="2"/>
+    </g>
+
+    <!-- ঝুড়ি: cane and bamboo work -->
+    <g id="basket" fill="none" stroke-linecap="round" stroke-dasharray="6 5">
+      <path d="M2 19h46l-7 34H9Z" stroke="#c8922a" stroke-width="2.4"/>
+      <path d="M11 19C11 4 39 4 39 19" stroke="#3f7a4a" stroke-width="2.2"/>
+      <path d="M6 31h38M10 42h30" stroke="#b4452f" stroke-width="1.8"/>
+    </g>
+
+    <!-- সেলাই মেশিন: the tailor's shop -->
+    <g id="sewing" fill="none" stroke-linecap="round" stroke-dasharray="6 5">
+      <path d="M2 48h58" stroke="#2f5d7a" stroke-width="2.6"/>
+      <path d="M9 48V35h13v13" stroke="#3f7a4a" stroke-width="2.2"/>
+      <path d="M9 35C9 15 21 11 35 11h15v11H37c-8 0-11 6-11 13" stroke="#b4452f" stroke-width="2.4"/>
+      <path d="M45 22v13" stroke="#c8922a" stroke-width="2.2"/>
+    </g>
+
     <!-- kalka, the paisley that edges most kanthas -->
     <g id="kalka" fill="none" stroke-linecap="round">
       <path d="M0 0C34-8 58 16 52 50C46 80 10 94-12 74C-30 58-24 30-2 26C12 23 21 34 16 46"
@@ -95,34 +117,62 @@
   <rect width="1640" height="624" fill="url(#buds)"/>
 
   <!-- medallions tucked into the corners, cropped by the edge like a real kantha -->
-  <g opacity=".13">
+  <g opacity=".08">
     <use href="#lotus" transform="translate(40 60)"/>
     <use href="#lotus" transform="translate(1600 60)"/>
     <use href="#lotus" transform="translate(60 600)"/>
     <use href="#lotus" transform="translate(1590 590)"/>
   </g>
 
-  <!-- a procession along the foot: the small industry and trade this fair is for,
-       stitched the way a kantha carries fish, boats and houses -->
-  <g opacity=".13">
+  <!-- the small industry and trade this fair is for, scattered over the cloth the way
+       a kantha carries fish, boats and houses. Faint enough to sit under the text. -->
+  <g opacity=".055">
+    <use href="#basket" transform="translate(96 128)"/>
+    <use href="#sewing" transform="translate(300 134)"/>
+    <use href="#pot" transform="translate(540 126)"/>
+    <use href="#fish" transform="translate(760 150)"/>
+    <use href="#mill" transform="translate(980 124)"/>
+    <use href="#shop" transform="translate(1250 128)"/>
+    <use href="#basket" transform="translate(1480 132)"/>
+
+    <use href="#fish" transform="translate(70 290)"/>
+    <use href="#pot" transform="translate(250 272)"/>
+    <use href="#mill" transform="translate(450 268)"/>
+    <use href="#basket" transform="translate(690 272)"/>
+    <use href="#sewing" transform="translate(860 282)"/>
+    <use href="#fish" transform="translate(1120 300) scale(-1 1)"/>
+    <use href="#pot" transform="translate(1320 272)"/>
+    <use href="#shop" transform="translate(1490 270)"/>
+
+    <use href="#mill" transform="translate(120 400)"/>
+    <use href="#fish" transform="translate(370 428)"/>
+    <use href="#shop" transform="translate(560 404)"/>
+    <use href="#basket" transform="translate(790 406)"/>
+    <use href="#sewing" transform="translate(1040 408)"/>
+    <use href="#pot" transform="translate(1290 402)"/>
+    <use href="#fish" transform="translate(1540 428) scale(-1 1)"/>
+  </g>
+
+  <!-- a denser procession along the foot, where nothing else sits -->
+  <g opacity=".1">
     <use href="#shop" transform="translate(96 522)"/>
     <use href="#fish" transform="translate(200 552)"/>
     <use href="#mill" transform="translate(320 518)"/>
-    <use href="#fish" transform="translate(520 552) scale(-1 1)"/>
-    <use href="#kalka" transform="translate(540 516)"/>
-    <use href="#fish" transform="translate(680 552)"/>
-    <use href="#shop" transform="translate(790 522)"/>
-    <use href="#fish" transform="translate(1000 552) scale(-1 1)"/>
-    <use href="#mill" transform="translate(1020 518)"/>
-    <use href="#kalka" transform="translate(1240 516)"/>
-    <use href="#fish" transform="translate(1340 552)"/>
+    <use href="#pot" transform="translate(470 524)"/>
+    <use href="#fish" transform="translate(620 552) scale(-1 1)"/>
+    <use href="#basket" transform="translate(640 526)"/>
+    <use href="#sewing" transform="translate(790 528)"/>
+    <use href="#kalka" transform="translate(940 516)"/>
+    <use href="#fish" transform="translate(1060 552)"/>
+    <use href="#mill" transform="translate(1180 518)"/>
+    <use href="#pot" transform="translate(1340 524)"/>
   </g>
 
 
   <!-- stitched border, two rows with a run of dots between them -->
   <g fill="none" stroke-linecap="round">
-    <rect x="15" y="15" width="1610" height="594" stroke="#b4452f" stroke-width="2.4" stroke-dasharray="11 9" opacity=".22"/>
-    <rect x="31" y="31" width="1578" height="562" stroke="#3f7a4a" stroke-width="1.8" stroke-dasharray="7 7" opacity=".17"/>
-    <rect x="44" y="44" width="1552" height="536" stroke="#2f5d7a" stroke-width="1.4" stroke-dasharray="4 9" opacity=".12"/>
+    <rect x="15" y="15" width="1610" height="594" stroke="#b4452f" stroke-width="2.4" stroke-dasharray="11 9" opacity=".14"/>
+    <rect x="31" y="31" width="1578" height="562" stroke="#3f7a4a" stroke-width="1.8" stroke-dasharray="7 7" opacity=".11"/>
+    <rect x="44" y="44" width="1552" height="536" stroke="#2f5d7a" stroke-width="1.4" stroke-dasharray="4 9" opacity=".08"/>
   </g>
 </svg>

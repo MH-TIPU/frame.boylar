@@ -92,6 +92,12 @@ function detail(ctx, icon, lines, x, top, colour) {
   return lines.length * META.line;
 }
 
+// Saves as the business name, with anything a filesystem would object to taken out.
+function downloadName(business) {
+  const name = business.trim().replace(/[\\/:*?"<>|.]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+  return `${name || 'sme-mela-2026-fb-cover'}.jpg`;
+}
+
 function placeholder(ctx, box, label) {
   ctx.save();
   ctx.setLineDash([12, 10]);
@@ -409,7 +415,7 @@ export default function Page() {
           onPointerDown={dragStart} onPointerMove={dragMove} onPointerUp={dragEnd} onPointerCancel={dragEnd}
         />
         <FrameForm
-          source="fbcover" fileName="sme-mela-2026-fb-cover.jpg" stepNo="৪"
+          source="fbcover" fileName={downloadName(business)} stepNo="৪"
           canvasRef={canvas} canDownload={hasLogo || hasStall || !!business.trim() || !!stallNo.trim()}
         >
           <div className="step">
