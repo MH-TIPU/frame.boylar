@@ -13,7 +13,7 @@ const FONT = hind.style.fontFamily;
 const SIZE = 2000;
 const CIRCLE = { x: 742.5, y: 935.5, r: 448 };      // smaller than the heavy ring in the artwork
 const MAT = { inner: 556, outer: 602 };             // paints that ring out, fading into the cloud
-const LOGO = { x: 1190, y: 1654, w: 450, h: 120 };  // slot for the entrepreneur's own logo
+const LOGO = { x: 1480, y: 1646, w: 440, h: 140 };  // slot for the entrepreneur's own logo
 const BAND = { y: 106, h: 209 };                    // the cream strip, repainted with the fair's lockup
 const FOOT = { y: 1506, h: 416 };                   // the old logo row and wave, repainted as one band
 const BASE = { yellow: 1922, green: 1932 };         // a plain foot in place of the artwork's dipped one
@@ -74,10 +74,10 @@ export default function Page() {
     ctx.fillRect(0, BASE.yellow, SIZE, BASE.green - BASE.yellow);
     ctx.fillStyle = DARK;
     ctx.fillRect(0, BASE.green, SIZE, SIZE - BASE.green);
-    let fy = FOOT.y + 150;
+    let fy = FOOT.y + 140;
     for (const [icon, text, size, weight, colour] of [
-      [calendarIcon, DATES, 46, 700, DARK],
-      [pinIcon, VENUE, 38, 400, '#35705a'],
+      [calendarIcon, DATES, 58, 700, DARK],
+      [pinIcon, VENUE, 48, 400, '#35705a'],
     ]) {
       icon(ctx, 140, fy, size, GREEN);
       ctx.font = `${weight} ${size}px ${FONT}`;
