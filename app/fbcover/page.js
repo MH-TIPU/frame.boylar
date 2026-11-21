@@ -23,6 +23,7 @@ const MARK = { right: 1584, y: 520, h: 58 };          // the organiser's logo, u
 const SLOGAN = { size: 46, line: 60 };                // the entrepreneur's own line, set in the curved face
 const BODY = { size: 30, line: 40 };                  // who, and where to find them
 const META = { size: 24, line: 32 };                  // when and where the fair is
+const GAP = 62;                                       // breathing room above the fair details
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const DATES = '২২ থেকে ২৮ নভেম্বর ২০২৬';
 const VENUE = 'স্থান: বাংলাদেশ-চীন মৈত্রী সম্মেলন কেন্দ্র, আগারগাঁও, ঢাকা';
@@ -264,16 +265,16 @@ export default function Page() {
       : null;
     const body = [
       { text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 },
-      { text: brand.number ? 'থাকছে এবারের মেলায় - স্টল নম্বর' : 'থাকছে এবারের মেলায়।' },
+      { text: brand.number ? 'আছে এবারের মেলায় - স্টল নম্বর' : 'আছে এবারের মেলায়।' },
     ];
-    if (brand.number) body.push({ text: `${brand.number}-এ`, weight: 700, mark: true });
+    if (brand.number) body.push({ text: brand.number, weight: 700, mark: true });
     const lines = layout(ctx, body, TEXT.w, BODY.size);
     const metaW = TEXT.w - META.size - 14;
     const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
     const venue = layout(ctx, [{ text: VENUE }], metaW, META.size);
     const sloganH = slogan ? slogan.length * SLOGAN.line : 0;
     const rowH = Math.max(SLOT.h, sloganH);
-    const stackH = rowH + 26 + lines.length * BODY.line + 20
+    const stackH = rowH + 26 + lines.length * BODY.line + GAP
       + (dates.length + venue.length) * META.line + 8;
     let y = CONTENT.y + Math.max(0, (CONTENT.h - stackH) / 2);
 
@@ -289,7 +290,7 @@ export default function Page() {
     y += rowH + 26;
 
     drawLines(ctx, lines, TEXT.x, y + BODY.size * 0.8, BODY.size, BODY.line, INK);
-    y += lines.length * BODY.line + 20;
+    y += lines.length * BODY.line + GAP;
 
     y += detail(ctx, calendarIcon, dates, TEXT.x, y, '#2f4a40') + 8;
     detail(ctx, pinIcon, venue, TEXT.x, y, '#2f4a40');
