@@ -11,7 +11,7 @@ const FONT = hind.style.fontFamily;
 // Geometry in the frame's own 2000x2000 pixel space (measured from public/frames/smefair.jpg).
 const SIZE = 2000;
 const CIRCLE = { x: 742.5, y: 935.5, r: 492 };      // the white photo circle
-const LOGO = { x: 1190, y: 1574, w: 450, h: 140 };  // slot for the entrepreneur's own logo
+const LOGO = { x: 1190, y: 1540, w: 450, h: 120 };  // slot for the entrepreneur's own logo
 const BAND = { y: 106, h: 209 };                    // the cream strip, repainted with the fair's lockup
 const FOOT = { y: 1506, h: 276 };                   // the old logo row, repainted as a matching band
 const CREAM = '#ffffeb', DARK = '#005c4b';
@@ -40,23 +40,26 @@ export default function Page() {
       ctx.drawImage(s.mela, 120, BAND.y + (BAND.h - h) / 2, w, h);
     }
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    ctx.font = `700 52px ${FONT}`;
+    ctx.textBaseline = 'middle';
+    ctx.font = `700 64px ${FONT}`;
     ctx.fillStyle = DARK;
-    ctx.fillText(FAIR, SIZE / 2, BAND.y + 92);
-    ctx.font = `400 30px ${FONT}`;
-    ctx.fillStyle = '#35705a';
-    ctx.fillText(WHEN, SIZE / 2, BAND.y + 148);
+    ctx.fillText(FAIR, SIZE / 2, BAND.y + BAND.h / 2 + 2);
     ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
 
     // and the row that held the partner logos, as a matching band: the organiser's
-    // mark at the left, the entrepreneur's own at the right
+    // mark at the left, the entrepreneur's own at the right, the address underneath
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, FOOT.y, SIZE, FOOT.h);
     if (s.bdosn) {
-      const h = 160, w = s.bdosn.width * h / s.bdosn.height;
-      ctx.drawImage(s.bdosn, 260, FOOT.y + (FOOT.h - h) / 2, w, h);
+      const h = 120, w = s.bdosn.width * h / s.bdosn.height;
+      ctx.drawImage(s.bdosn, 260, LOGO.y, w, h);
     }
+    ctx.textAlign = 'center';
+    ctx.font = `400 32px ${FONT}`;
+    ctx.fillStyle = '#35705a';
+    ctx.fillText(WHEN, SIZE / 2, FOOT.y + 240);
+    ctx.textAlign = 'left';
 
     if (s.photo) {
       const d = CIRCLE.r * 2;
