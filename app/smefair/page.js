@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Hind_Siliguri } from 'next/font/google';
 import FrameForm from '../../components/FrameForm';
+import { calendarIcon, pinIcon } from '../../lib/icons';
 import { loadImage, pickImage } from '../../lib/image';
 
 const hind = Hind_Siliguri({ subsets: ['bengali', 'latin'], weight: ['400', '700'], display: 'swap' });
@@ -10,11 +11,12 @@ const FONT = hind.style.fontFamily;
 
 // Geometry in the frame's own 2000x2000 pixel space (measured from public/frames/smefair.jpg).
 const SIZE = 2000;
-const CIRCLE = { x: 742.5, y: 935.5, r: 492 };      // the white photo circle
+const CIRCLE = { x: 742.5, y: 935.5, r: 448 };      // smaller than the heavy ring in the artwork
+const MAT = { inner: 556, outer: 602 };             // paints that ring out, fading into the cloud
 const LOGO = { x: 1190, y: 1584, w: 450, h: 120 };  // slot for the entrepreneur's own logo
 const BAND = { y: 106, h: 209 };                    // the cream strip, repainted with the fair's lockup
 const FOOT = { y: 1506, h: 276 };                   // the old logo row, repainted as a matching band
-const CREAM = '#ffffeb', DARK = '#005c4b';
+const CREAM = '#ffffeb', DARK = '#005c4b', GREEN = '#1ea851';
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const DATES = '২২ থেকে ২৮ নভেম্বর ২০২৬';
 const VENUE = 'বাংলাদেশ-চীন মৈত্রী সম্মেলন কেন্দ্র, আগারগাঁও, ঢাকা';
@@ -32,6 +34,16 @@ export default function Page() {
     if (!s.frame) return;
     const ctx = canvas.current.getContext('2d');
     ctx.drawImage(s.frame, 0, 0, SIZE, SIZE);
+
+    // paint out the artwork's heavy ring, fading into the cloud so there is no seam
+    const mat = ctx.createRadialGradient(CIRCLE.x, CIRCLE.y, 0, CIRCLE.x, CIRCLE.y, MAT.outer);
+    mat.addColorStop(0, 'rgba(237, 235, 210, 1)');
+    mat.addColorStop(MAT.inner / MAT.outer, 'rgba(237, 235, 210, 1)');
+    mat.addColorStop(1, 'rgba(237, 235, 210, 0)');
+    ctx.fillStyle = mat;
+    ctx.beginPath();
+    ctx.arc(CIRCLE.x, CIRCLE.y, MAT.outer, 0, Math.PI * 2);
+    ctx.fill();
 
     // repaint the cream strip: the fair's own logo and name, then when and where
     ctx.fillStyle = CREAM;
@@ -56,13 +68,24 @@ export default function Page() {
     // fair is at the left, room for the entrepreneur's own logo at the right
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, FOOT.y, SIZE, FOOT.h);
-    ctx.font = `700 40px ${FONT}`;
-    ctx.fillStyle = DARK;
-    ctx.fillText(DATES, 140, FOOT.y + 124);
-    ctx.font = `400 33px ${FONT}`;
-    ctx.fillStyle = '#35705a';
-    ctx.fillText(VENUE, 140, FOOT.y + 184);
+    let fy = FOOT.y + 76;
+    for (const [icon, text, size, weight, colour] of [
+      [calendarIcon, DATES, 46, 700, DARK],
+      [pinIcon, VENUE, 38, 400, '#35705a'],
+    ]) {
+      icon(ctx, 140, fy, size, GREEN);
+      ctx.font = `${weight} ${size}px ${FONT}`;
+      ctx.fillStyle = colour;
+      ctx.fillText(text, 140 + size + 22, fy + size * 0.82);
+      fy += size + 32;
+    }
 
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(CIRCLE.x, CIRCLE.y, CIRCLE.r, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(CIRCLE.x - CIRCLE.r, CIRCLE.y - CIRCLE.r, CIRCLE.r * 2, CIRCLE.r * 2);
     if (s.photo) {
       const d = CIRCLE.r * 2;
       const k = Math.max(d / s.photo.width, d / s.photo.height) * s.zoom;   // "cover" the circle
@@ -70,13 +93,21 @@ export default function Page() {
       // keep the circle fully covered while dragging
       s.ox = Math.max(-(w - d) / 2, Math.min((w - d) / 2, s.ox));
       s.oy = Math.max(-(h - d) / 2, Math.min((h - d) / 2, s.oy));
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(CIRCLE.x, CIRCLE.y, CIRCLE.r, 0, Math.PI * 2);
-      ctx.clip();
       ctx.drawImage(s.photo, CIRCLE.x - w / 2 + s.ox, CIRCLE.y - h / 2 + s.oy, w, h);
-      ctx.restore();
     }
+    ctx.restore();
+
+    // a fine double ring in place of the artwork's heavy one
+    ctx.strokeStyle = GREEN;
+    ctx.lineWidth = 9;
+    ctx.beginPath();
+    ctx.arc(CIRCLE.x, CIRCLE.y, CIRCLE.r + 4, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0, 92, 75, 0.5)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(CIRCLE.x, CIRCLE.y, CIRCLE.r + 28, 0, Math.PI * 2);
+    ctx.stroke();
     if (s.logo) {
       const k = Math.min(LOGO.w / s.logo.width, LOGO.h / s.logo.height);    // "contain" in the slot
       const w = s.logo.width * k, h = s.logo.height * k;
