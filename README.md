@@ -10,8 +10,9 @@ stored in PostgreSQL.
 - `/` — index of the available banners
 - `/smefair` — put your photo in the 13th National SME Product Fair 2026 frame
 - `/fbcover` — a Facebook cover inviting customers to your stall at the fair
-- `/admin` — table of collected leads with CSV export (user `admin`, password from `ADMIN_PASSWORD`)
+- `/admin` — downloads per page and the collected leads, with CSV export (user `admin`, password from `ADMIN_PASSWORD`)
 - `POST /api/lead` — stores a lead; each page sends its own `source`
+- `POST /api/download` — one row per banner saved, so `/admin` can count them
 
 ## Files
 
@@ -43,6 +44,9 @@ npm start -- -p 3003
 
 Put `DATABASE_URL` and `ADMIN_PASSWORD` in `.env` on the server (not in git). Serve it over
 HTTPS: the admin password is sent with every request to `/admin`.
+
+`schema.sql` only ever adds what is missing, so run it again after a deploy that introduces
+a table: `psql "$(grep ^DATABASE_URL= .env | cut -d= -f2-)" -f schema.sql`.
 
 ## Adding a banner
 

@@ -3,6 +3,11 @@
 body { margin: 0; font-family: system-ui, "Noto Sans Bengali", "Hind Siliguri", sans-serif; background: var(--bg); color: #1d2b27; }
 header { background: var(--dark); color: #fff; padding: 14px 16px; border-bottom: 5px solid var(--yellow); text-align: center; }
 header h1 { margin: 0; font-size: 1rem; font-weight: 400; }   /* the page's only heading; styled as plain text */
+nav.frames { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
+nav.frames a { padding: 6px 18px; border-radius: 999px; font-size: .9rem; text-decoration: none; color: #fff; border: 1px solid #ffffff6b; }
+nav.frames a:hover { background: #ffffff26; }
+nav.frames a.on { background: #fff; color: var(--dark); border-color: #fff; font-weight: 700; }
+
 footer { text-align: center; padding: 20px 16px; font-size: .8rem; color: var(--muted); }
 footer a { color: inherit; }
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Galada, Hind_Siliguri } from 'next/font/google';
 import FrameForm from '../../components/FrameForm';
+import FrameNav from '../../components/FrameNav';
 import { loadImage, pickImage } from '../../lib/image';
 
 // Self-hosted so the Bengali on the canvas looks the same on every device.
@@ -408,6 +409,7 @@ export default function Page() {
     <div className={hind.className}>
       <header>
         <h1>Make your stall invitation cover for Facebook</h1>
+        <FrameNav current="/fbcover" />
       </header>
       <main className="stack">
         <canvas

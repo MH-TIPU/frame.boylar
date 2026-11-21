@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Hind_Siliguri } from 'next/font/google';
 import FrameForm from '../../components/FrameForm';
+import FrameNav from '../../components/FrameNav';
 import { calendarIcon, pinIcon } from '../../lib/icons';
 import { loadImage, pickImage } from '../../lib/image';
 
@@ -11,8 +12,11 @@ const FONT = hind.style.fontFamily;
 
 // Geometry in the frame's own 2000x2000 pixel space (measured from public/frames/smefair.jpg).
 const SIZE = 2000;
-const CIRCLE = { x: 742.5, y: 935.5, r: 448 };      // smaller than the heavy ring in the artwork
+const CIRCLE = { x: 742.5, y: 935.5, r: 400 };      // smaller than the heavy ring in the artwork
 const MAT = { inner: 556, outer: 602 };             // paints that ring out, fading into the cloud
+const WIPE = { x: 1300, y: 525, w: 580, h: 830 };   // hides the artwork's five-line headline
+const HEAD = ['আমি আসছি', 'আপনি আসছেন তো?'];
+const HEAD_BOX = { x: 1235, w: 690, mid: 935 };     // where that headline is set again, in two lines
 const LOGO = { x: 1480, y: 1646, w: 440, h: 140 };  // slot for the entrepreneur's own logo
 const BAND = { y: 106, h: 209 };                    // the cream strip, repainted with the fair's lockup
 const FOOT = { y: 1506, h: 416 };                   // the old logo row and wave, repainted as one band
@@ -35,6 +39,23 @@ export default function Page() {
     if (!s.frame) return;
     const ctx = canvas.current.getContext('2d');
     ctx.drawImage(s.frame, 0, 0, SIZE, SIZE);
+
+    // soften the artwork's five-line headline away: a blurred patch in the cloud's own
+    // tone, so it can be set again in two lines below
+    ctx.save();
+    ctx.filter = 'blur(30px)';
+    ctx.fillStyle = '#f0efd3';
+    const r = 140;
+    ctx.beginPath();
+    ctx.moveTo(WIPE.x + r, WIPE.y);
+    ctx.arcTo(WIPE.x + WIPE.w, WIPE.y, WIPE.x + WIPE.w, WIPE.y + WIPE.h, r);
+    ctx.arcTo(WIPE.x + WIPE.w, WIPE.y + WIPE.h, WIPE.x, WIPE.y + WIPE.h, r);
+    ctx.arcTo(WIPE.x, WIPE.y + WIPE.h, WIPE.x, WIPE.y, r);
+    ctx.arcTo(WIPE.x, WIPE.y, WIPE.x + WIPE.w, WIPE.y, r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
     if (s.motifs) ctx.drawImage(s.motifs, 0, 0, SIZE, SIZE);   // small trades over the sky
 
     // paint out the artwork's heavy ring, fading into the cloud so there is no seam
@@ -114,6 +135,23 @@ export default function Page() {
     ctx.beginPath();
     ctx.arc(CIRCLE.x, CIRCLE.y, CIRCLE.r + 28, 0, Math.PI * 2);
     ctx.stroke();
+
+    // the headline, set in two lines and sized to the room beside the photo
+    let head = 108;
+    ctx.font = `700 ${head}px ${FONT}`;
+    const widest = Math.max(...HEAD.map(t => ctx.measureText(t).width));
+    if (widest > HEAD_BOX.w) {
+      head = Math.floor(head * HEAD_BOX.w / widest);
+      ctx.font = `700 ${head}px ${FONT}`;
+    }
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = DARK;
+    HEAD.forEach((line, i) => {
+      ctx.fillText(line, HEAD_BOX.x + HEAD_BOX.w / 2, HEAD_BOX.mid + (i - 0.5) * head * 1.34);
+    });
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
     if (s.logo) {
       const k = Math.min(LOGO.w / s.logo.width, LOGO.h / s.logo.height);    // "contain" in the slot
       const w = s.logo.width * k, h = s.logo.height * k;
@@ -170,6 +208,7 @@ export default function Page() {
     <div className={hind.className}>
       <header>
         <h1>Add your photo and company logo, then download and share</h1>
+        <FrameNav current="/smefair" />
       </header>
       <main>
         <canvas

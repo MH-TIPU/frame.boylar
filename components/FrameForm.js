@@ -35,6 +35,11 @@ export default function FrameForm({ source, fileName, canvasRef, canDownload, st
 
   function download() {
     if (form.current.checkValidity()) sendLead();   // also covers people who fill in details first and never press Send
+    fetch('/api/download', {
+      method: 'POST',
+      keepalive: true,
+      body: new URLSearchParams({ source }),
+    }).catch(() => { /* counting must never get in the way of the download */ });
     canvasRef.current.toBlob(blob => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
