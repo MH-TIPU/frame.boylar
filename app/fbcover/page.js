@@ -15,15 +15,18 @@ const SCRIPT = galada.style.fontFamily;   // the calligraphic face, used for the
 const W = 1640, H = 624;
 const BAND = 98;                                      // cream partner-logo strip at the top
 const TITLE = { y: 155, size: 58, max: 1180 };        // the line every banner shares
-const CONTENT = { y: 196, h: 344 };                   // everything else, above the bottom wave
-const SLOT = { x: 56, y: 244, w: 280, h: 248 };       // the entrepreneur's own logo
+const CONTENT = { y: 196, h: 336 };                   // everything else, above the bottom wave
+const SLOT = { x: 56, y: 240, w: 280, h: 248 };       // the entrepreneur's own logo
 const TEXT = { x: 376, w: 594 };
-const STALL = { x: 1016, y: 196, w: 568, h: 344 };    // the stall, same shape as booth.svg
-const FACIA = 76;                                     // signboard strip laid over an uploaded photo
-const EYE = { size: 26, line: 34 };                   // which fair this is
+const STALL = { x: 1029, y: 196, w: 555, h: 336 };    // the stall, same shape as booth.svg
+const FACIA = 74;                                     // signboard strip laid over an uploaded photo
+const WAVE = { yellow: 536, green: 560 };             // the dipped foot, and where content must stop
 const BODY = { size: 32, line: 43 };                  // who, and where to find them
+const META = { size: 26, line: 36 };                  // when and where the fair is
 const NOTE = { size: 27, line: 36 };                  // the entrepreneur's own message
-const FAIR = '১৩তম জাতীয় এসএমই পণ্য মেলা ২০২৬';
+const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
+const DATES = '২২ থেকে ২৮ নভেম্বর ২০২৬';
+const VENUE = 'স্থান: বাংলাদেশ-চীন মৈত্রী সম্মেলন কেন্দ্র, আগারগাঁও, ঢাকা';
 const WELCOME = 'আপনাদের আমন্ত্রণ রইল আমাদের স্টলে';
 
 const CREAM = '#fffeeb', DARK = '#005c4b', GREEN = '#1ea851', YELLOW = '#ffe600', INK = '#14362c';
@@ -34,10 +37,7 @@ const BOOTH_FACIA = { x: 50 / 684, y: 36 / 414, w: 422 / 684, h: 74 / 414 };
 const FIXED = {
   booth: '/frames/booth.svg',
   mela: '/logos/mela2026.png',
-  smef: '/logos/smef.png',
-  chakri: '/logos/chakri.png',
   bdosn: '/logos/bdosn.png',
-  sahosika: '/logos/sahosika.png',
 };
 
 const font = (weight, size) => `${weight} ${size}px ${FONT}`;
@@ -58,6 +58,39 @@ function byHeight(ctx, img, x, midY, h) {
   const w = img.width * h / img.height;
   ctx.drawImage(img, x, midY - h / 2, w, h);
   return w;
+}
+
+function calendarIcon(ctx, x, y, size, colour) {
+  ctx.strokeStyle = colour;
+  ctx.fillStyle = colour;
+  ctx.lineWidth = 2.2;
+  roundRect(ctx, x, y + size * 0.14, size, size * 0.86, 4);
+  ctx.stroke();
+  ctx.fillRect(x, y + size * 0.14, size, 6);
+  ctx.fillRect(x + size * 0.24, y, 3, size * 0.24);
+  ctx.fillRect(x + size * 0.68, y, 3, size * 0.24);
+}
+
+function pinIcon(ctx, x, y, size, colour) {
+  const r = size * 0.33, cx = x + size / 2, cy = y + r + 2;
+  ctx.strokeStyle = colour;
+  ctx.fillStyle = colour;
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI * 0.8, Math.PI * 0.2);   // the round head, left open at the bottom
+  ctx.lineTo(cx, y + size);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.36, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// One block of fair detail: an icon, then text wrapped beside it.
+function detail(ctx, icon, lines, x, top, colour) {
+  icon(ctx, x, top + 3, META.size, GREEN);
+  drawLines(ctx, lines, x + META.size + 14, top + META.size * 0.82, META.size, META.line, colour);
+  return lines.length * META.line;
 }
 
 function placeholder(ctx, box, label) {
@@ -188,7 +221,7 @@ export default function Page() {
     ctx.fillRect(0, 0, W, H);
 
     // the dipped yellow/green foot, echoing the smefair frame
-    for (const [colour, top] of [[YELLOW, 548], [DARK, 574]]) {
+    for (const [colour, top] of [[YELLOW, WAVE.yellow], [DARK, WAVE.green]]) {
       ctx.fillStyle = colour;
       ctx.beginPath();
       ctx.moveTo(0, top);
@@ -199,20 +232,23 @@ export default function Page() {
       ctx.fill();
     }
 
-    // partner logos on a cream band: organisers left, hosts right
+    // cream band carrying the fair's own lockup: its logo, then its name
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, 0, W, BAND);
     ctx.fillStyle = GREEN;
     ctx.fillRect(0, BAND, W, 5);
     ctx.fillStyle = YELLOW;
     ctx.fillRect(0, BAND + 5, W, 3);
-    const f = s.fixed, mid = BAND / 2;
-    const melaW = byHeight(ctx, f.mela, 48, mid, 68);
-    byHeight(ctx, f.smef, 48 + melaW + 28, mid, 50);
-    const right = [[f.chakri, 54], [f.bdosn, 46], [f.sahosika, 54]];
-    const widths = right.map(([img, h]) => (img ? img.width * h / img.height : 0));
-    let x = 1592 - widths.reduce((a, b) => a + b, 0) - 28 * (right.length - 1);
-    right.forEach(([img, h], i) => { byHeight(ctx, img, x, mid, h); x += widths[i] + 28; });
+    const mid = BAND / 2, mela = s.fixed.mela;
+    ctx.font = font(700, 36);
+    const fairW = ctx.measureText(FAIR).width;
+    const melaW = mela ? mela.width * 70 / mela.height : 0;
+    const lockup = (W - melaW - 26 - fairW) / 2;
+    byHeight(ctx, mela, lockup, mid, 70);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = DARK;
+    ctx.fillText(FAIR, lockup + melaW + 26, mid + 1);
 
     // the one line every banner shares, set in the calligraphic face as the title
     ctx.textAlign = 'center';
@@ -264,22 +300,22 @@ export default function Page() {
     ];
     if (brand.number) body.push({ text: brand.number, bold: true, mark: true });
     const lines = layout(ctx, body, TEXT.w, BODY.size);
+    const metaW = TEXT.w - META.size - 14;
+    const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
+    const venue = layout(ctx, [{ text: VENUE }], metaW, META.size);
     const note = message.trim() ? layout(ctx, [{ text: message.trim() }], TEXT.w - 24, NOTE.size) : null;
-    const stackH = EYE.line + 8 + lines.length * BODY.line + (note ? 24 + note.length * NOTE.line : 0);
+    const stackH = lines.length * BODY.line + 20 + (dates.length + venue.length) * META.line + 8
+      + (note ? 22 + note.length * NOTE.line : 0);
     let y = CONTENT.y + (CONTENT.h - stackH) / 2;
 
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    ctx.font = font(700, EYE.size);
-    ctx.fillStyle = GREEN;
-    ctx.fillText(FAIR, TEXT.x, y + EYE.size * 0.8);
-    y += EYE.line + 8;
-
     drawLines(ctx, lines, TEXT.x, y + BODY.size * 0.8, BODY.size, BODY.line, INK);
-    y += lines.length * BODY.line;
+    y += lines.length * BODY.line + 20;
+
+    y += detail(ctx, calendarIcon, dates, TEXT.x, y, '#2f4a40') + 8;
+    y += detail(ctx, pinIcon, venue, TEXT.x, y, '#2f4a40');
 
     if (note) {
-      y += 24;
+      y += 22;
       ctx.fillStyle = GREEN;
       ctx.fillRect(TEXT.x, y, 5, note.length * NOTE.line - 8);
       drawLines(ctx, note, TEXT.x + 24, y + NOTE.size * 0.8, NOTE.size, NOTE.line, '#3c5a4f');
@@ -326,6 +362,18 @@ export default function Page() {
     ctx.lineWidth = 6;
     ctx.strokeStyle = CREAM;
     ctx.stroke();
+
+    // the organiser's mark, bottom right in the foot
+    const bdosn = s.fixed.bdosn;
+    if (bdosn) {
+      const h = 40, w = bdosn.width * h / bdosn.height;
+      const plateW = w + 24, plateH = h + 16;
+      const px = 1584 - plateW, py = 618 - plateH;
+      ctx.fillStyle = CREAM;
+      roundRect(ctx, px, py, plateW, plateH, 8);
+      ctx.fill();
+      ctx.drawImage(bdosn, px + 12, py + 8, w, h);
+    }
   }
 
   useEffect(() => {
