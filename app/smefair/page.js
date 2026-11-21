@@ -11,8 +11,9 @@ const FONT = hind.style.fontFamily;
 // Geometry in the frame's own 2000x2000 pixel space (measured from public/frames/smefair.jpg).
 const SIZE = 2000;
 const CIRCLE = { x: 742.5, y: 935.5, r: 492 };      // the white photo circle
-const LOGO = { x: 1190, y: 1595, w: 450, h: 140 };  // slot right of the BDOSN logo, same height as it
+const LOGO = { x: 1190, y: 1574, w: 450, h: 140 };  // slot for the entrepreneur's own logo
 const BAND = { y: 106, h: 209 };                    // the cream strip, repainted with the fair's lockup
+const FOOT = { y: 1506, h: 276 };                   // the old logo row, repainted as a matching band
 const CREAM = '#ffffeb', DARK = '#005c4b';
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const WHEN = '২২ থেকে ২৮ নভেম্বর ২০২৬ · বাংলাদেশ-চীন মৈত্রী সম্মেলন কেন্দ্র, আগারগাঁও, ঢাকা';
@@ -21,7 +22,7 @@ export default function Page() {
   const canvas = useRef(null);
   const logoInput = useRef(null);
   // What the canvas draws. Kept in a ref (not state) so dragging redraws without re-rendering.
-  const s = useRef({ frame: null, mela: null, photo: null, logo: null, zoom: 1, ox: 0, oy: 0, last: null }).current;
+  const s = useRef({ frame: null, mela: null, bdosn: null, photo: null, logo: null, zoom: 1, ox: 0, oy: 0, last: null }).current;
   const [hasPhoto, setHasPhoto] = useState(false);
   const [hasLogo, setHasLogo] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -48,6 +49,15 @@ export default function Page() {
     ctx.fillText(WHEN, SIZE / 2, BAND.y + 148);
     ctx.textAlign = 'left';
 
+    // and the row that held the partner logos, as a matching band: the organiser's
+    // mark at the left, the entrepreneur's own at the right
+    ctx.fillStyle = CREAM;
+    ctx.fillRect(0, FOOT.y, SIZE, FOOT.h);
+    if (s.bdosn) {
+      const h = 160, w = s.bdosn.width * h / s.bdosn.height;
+      ctx.drawImage(s.bdosn, 260, FOOT.y + (FOOT.h - h) / 2, w, h);
+    }
+
     if (s.photo) {
       const d = CIRCLE.r * 2;
       const k = Math.max(d / s.photo.width, d / s.photo.height) * s.zoom;   // "cover" the circle
@@ -72,12 +82,13 @@ export default function Page() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [frame, mela] = await Promise.all([
+      const [frame, mela, bdosn] = await Promise.all([
         loadImage('/frames/smefair.jpg'),
         loadImage('/logos/mela2026.png').catch(() => null),
+        loadImage('/logos/bdosn.png').catch(() => null),
       ]);
       if (!alive) return;
-      Object.assign(s, { frame, mela });
+      Object.assign(s, { frame, mela, bdosn });
       try {
         await Promise.all([400, 700].map(w => document.fonts.load(`${w} 52px ${FONT}`)));
         await document.fonts.ready;
