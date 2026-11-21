@@ -233,7 +233,7 @@ export default function Page() {
     ctx.fillText(FAIR, W / 2, mid + 1);
     ctx.save();                       // a line of kantha stitch closes the band off
     ctx.strokeStyle = '#b4452f';
-    ctx.globalAlpha = 0.45;
+    ctx.globalAlpha = 0.28;
     ctx.lineWidth = 2.6;
     ctx.setLineDash([11, 9]);
     ctx.beginPath();
@@ -245,8 +245,16 @@ export default function Page() {
     // left column, top to bottom: the logo, their slogan set light and large,
     // then who they are, when the fair runs and where it is
     const brand = { logo: s.logo, name: business.trim(), number: stallNo.trim() };
+    // the logo sets how much room is left for the slogan beside it
+    let logoW = SLOT.w, logoH = SLOT.h;
+    if (s.logo) {
+      const k = Math.min(SLOT.w / s.logo.width, SLOT.h / s.logo.height);
+      logoW = s.logo.width * k;
+      logoH = s.logo.height * k;
+    }
+    const sloganX = SLOT.x + logoW + 40;
     const slogan = message.trim()
-      ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], TEXT.w, SLOGAN.size)
+      ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], TEXT.x + TEXT.w - sloganX, SLOGAN.size)
       : null;
     const body = [
       { text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 },
@@ -257,24 +265,22 @@ export default function Page() {
     const metaW = TEXT.w - META.size - 14;
     const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
     const venue = layout(ctx, [{ text: VENUE }], metaW, META.size);
-    const stackH = SLOT.h + (slogan ? 26 + slogan.length * SLOGAN.line : 0) + 26
-      + lines.length * BODY.line + 20 + (dates.length + venue.length) * META.line + 8;
+    const sloganH = slogan ? slogan.length * SLOGAN.line : 0;
+    const rowH = Math.max(SLOT.h, sloganH);
+    const stackH = rowH + 26 + lines.length * BODY.line + 20
+      + (dates.length + venue.length) * META.line + 8;
     let y = CONTENT.y + Math.max(0, (CONTENT.h - stackH) / 2);
 
     if (s.logo) {
-      const k = Math.min(SLOT.w / s.logo.width, SLOT.h / s.logo.height);
-      ctx.drawImage(s.logo, SLOT.x, y + (SLOT.h - s.logo.height * k) / 2, s.logo.width * k, s.logo.height * k);
+      ctx.drawImage(s.logo, SLOT.x, y + (rowH - logoH) / 2, logoW, logoH);
     } else {
-      placeholder(ctx, { ...SLOT, y }, 'আপনার লোগো');
+      placeholder(ctx, { ...SLOT, y: y + (rowH - SLOT.h) / 2 }, 'আপনার লোগো');
     }
-    y += SLOT.h;
-
     if (slogan) {
-      y += 26;
-      drawLines(ctx, slogan, TEXT.x, y + SLOGAN.size * 0.8, SLOGAN.size, SLOGAN.line, DARK);
-      y += slogan.length * SLOGAN.line;
+      drawLines(ctx, slogan, sloganX, y + (rowH - sloganH) / 2 + SLOGAN.size * 0.8,
+        SLOGAN.size, SLOGAN.line, DARK);
     }
-    y += 26;
+    y += rowH + 26;
 
     drawLines(ctx, lines, TEXT.x, y + BODY.size * 0.8, BODY.size, BODY.line, INK);
     y += lines.length * BODY.line + 20;
