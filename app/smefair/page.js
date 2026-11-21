@@ -12,9 +12,9 @@ const FONT = hind.style.fontFamily;
 
 // Geometry in the frame's own 2000x2000 pixel space (measured from public/frames/smefair.jpg).
 const SIZE = 2000;
-const CIRCLE = { x: 660, y: 930, r: 350 };
+const CIRCLE = { x: 600, y: 930, r: 395 };
 const HEAD = ['আমি আসছি', 'আপনি আসছেন', 'তো?'];
-const HEAD_BOX = { x: 1080, w: 880, mid: 930 };     // clear of the circle and its ring
+const HEAD_BOX = { x: 1065, w: 895, mid: 930 };     // clear of the circle and its ring
 // soft light through the sky: x, y, radius, strength
 const PUFFS = [
   [250, 520, 420, 0.55], [1520, 470, 450, 0.5], [1780, 1180, 380, 0.42],
