@@ -1,61 +1,140 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1368" height="828" viewBox="0 0 684 414" role="img" aria-label="A standard exhibition stall with a blank facia">
+  <!-- Shell-scheme stall seen from the front left: the front face stays flat so the
+       facia branding drawn on top of this stays readable, while the right-hand wall
+       recedes toward a vanishing point at roughly (1300, 196). -->
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#495564"/>
+    <linearGradient id="room" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a6673"/>
+      <stop offset=".5" stop-color="#36404b"/>
       <stop offset="1" stop-color="#232a33"/>
     </linearGradient>
-    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#e4e9ed"/>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b323b"/>
+      <stop offset="1" stop-color="#0f1319"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fdfefe"/>
+      <stop offset=".5" stop-color="#f4f7f9"/>
+      <stop offset="1" stop-color="#e0e7ec"/>
+    </linearGradient>
+    <linearGradient id="side" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ccd5dd"/>
+      <stop offset="1" stop-color="#9fabb7"/>
     </linearGradient>
     <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#f1f5f8"/>
+      <stop offset=".65" stop-color="#fbfcfe"/>
+      <stop offset="1" stop-color="#edf2f6"/>
     </linearGradient>
-    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2f3741"/>
-      <stop offset="1" stop-color="#151a20"/>
+    <linearGradient id="alu" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e3e9ee"/>
+      <stop offset=".45" stop-color="#b6c2cc"/>
+      <stop offset="1" stop-color="#8e9aa6"/>
     </linearGradient>
-    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff6cf" stop-opacity=".5"/>
-      <stop offset="1" stop-color="#fff6cf" stop-opacity="0"/>
+    <linearGradient id="aluSide" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#b3bfca"/>
+      <stop offset="1" stop-color="#7d8995"/>
     </linearGradient>
+    <linearGradient id="counter" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dde4ea"/>
+    </linearGradient>
+    <radialGradient id="pool" cx=".5" cy="0" r=".92">
+      <stop offset="0" stop-color="#fffbe8" stop-opacity=".85"/>
+      <stop offset=".6" stop-color="#fffbe8" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#fffbe8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="depth" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5e7183" stop-opacity="0"/>
+      <stop offset="1" stop-color="#5e7183" stop-opacity=".3"/>
+    </linearGradient>
+    <linearGradient id="dropped" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5e7183" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#5e7183" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="refl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8f0f6" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#e8f0f6" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="vignette" cx=".5" cy=".45" r=".78">
+      <stop offset=".55" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity=".45"/>
+    </radialGradient>
   </defs>
 
-  <rect width="684" height="414" fill="url(#bg)"/>
-  <rect y="338" width="684" height="76" fill="url(#floor)"/>
+  <rect width="684" height="414" fill="url(#room)"/>
+  <polygon points="0,356 486,356 652,323 684,316 684,414 0,414" fill="url(#floor)"/>
 
-  <!-- spotlights clipped to the facia, so the stall number sits in a pool of light -->
-  <g fill="#39424d">
-    <rect x="152" y="12" width="26" height="9" rx="4"/>
-    <rect x="329" y="12" width="26" height="9" rx="4"/>
-    <rect x="506" y="12" width="26" height="9" rx="4"/>
+  <!-- light spilling from the stall onto the floor in front of it -->
+  <polygon points="36,356 486,356 560,414 -40,414" fill="#f2f7fb" opacity=".07"/>
+
+  <!-- receding right-hand wall, then the flat front wall -->
+  <polygon points="486,122 652,137 652,323 486,356" fill="url(#side)"/>
+  <g stroke="#8d99a5" stroke-width="1.6" opacity=".55">
+    <path d="M541,127v218M596,132v202"/>
+  </g>
+  <rect x="36" y="122" width="450" height="234" fill="url(#front)"/>
+  <g stroke="#dde4ea" stroke-width="2">
+    <path d="M111,122v234M186,122v234M261,122v234M336,122v234M411,122v234"/>
   </g>
 
-  <!-- facia: the blank signboard the stall number is printed on -->
-  <rect x="50" y="24" width="584" height="98" rx="4" fill="#aebcc7"/>
-  <rect x="56" y="30" width="572" height="86" fill="url(#panel)"/>
-  <path d="M100 30h156l-40 86H140z M294 30h156l-40 86H334z M488 30h156l-40 86H528z" fill="url(#glow)"/>
-
-  <!-- side posts and the panelled back wall -->
-  <rect x="44" y="24" width="14" height="316" rx="3" fill="#c3cfd8"/>
-  <rect x="626" y="24" width="14" height="316" rx="3" fill="#c3cfd8"/>
-  <rect x="58" y="122" width="568" height="218" fill="url(#wall)"/>
-  <g stroke="#d6dde3" stroke-width="2">
-    <path d="M129 122v218M200 122v218M271 122v218M342 122v218M413 122v218M484 122v218M555 122v218"/>
+  <!-- the wall falls away toward the floor, then the facia spots wash light back down it -->
+  <rect x="36" y="122" width="450" height="234" fill="url(#depth)"/>
+  <polygon points="486,122 652,137 652,323 486,356" fill="url(#depth)" opacity=".7"/>
+  <g>
+    <rect x="46" y="122" width="160" height="205" fill="url(#pool)"/>
+    <rect x="181" y="122" width="160" height="205" fill="url(#pool)"/>
+    <rect x="316" y="122" width="160" height="205" fill="url(#pool)"/>
   </g>
-  <rect x="58" y="122" width="568" height="6" fill="#dfe5ea"/>
+  <rect x="36" y="122" width="450" height="16" fill="url(#dropped)"/>
 
-  <!-- counter and two chairs -->
-  <rect x="252" y="286" width="38" height="54" rx="6" fill="#b4352d"/>
-  <rect x="252" y="272" width="38" height="22" rx="8" fill="#c8453c"/>
-  <rect x="394" y="286" width="38" height="54" rx="6" fill="#b4352d"/>
-  <rect x="394" y="272" width="38" height="22" rx="8" fill="#c8453c"/>
-  <rect x="296" y="250" width="92" height="90" fill="#fbfcfd"/>
-  <rect x="290" y="244" width="104" height="12" rx="3" fill="#39434d"/>
-  <rect x="296" y="250" width="92" height="90" fill="none" stroke="#dde3e8" stroke-width="2"/>
+  <!-- facia: the signboard the stall branding is printed on -->
+  <polygon points="486,24 652,59 652,137 486,122" fill="url(#aluSide)"/>
+  <polygon points="492,30 646,63 646,131 492,116" fill="#cdd6de"/>
+  <rect x="36" y="24" width="450" height="98" fill="url(#alu)"/>
+  <rect x="42" y="30" width="438" height="86" fill="url(#panel)"/>
+  <rect x="42" y="30" width="438" height="4" fill="#ffffff" opacity=".9"/>
 
-  <!-- floor reflection -->
-  <rect x="58" y="340" width="568" height="34" fill="#ffffff" opacity=".07"/>
-  <rect x="296" y="340" width="92" height="22" fill="#ffffff" opacity=".07"/>
+  <!-- spot rail and three fixtures over the facia -->
+  <rect x="60" y="16" width="402" height="5" rx="2.5" fill="#39434e"/>
+  <g fill="#2f3842">
+    <path d="M118,21h16l6 12h-28zM253,21h16l6 12h-28zM388,21h16l6 12h-28z"/>
+  </g>
+  <g fill="#fff4cd" opacity=".85">
+    <ellipse cx="126" cy="33" rx="11" ry="3"/>
+    <ellipse cx="261" cy="33" rx="11" ry="3"/>
+    <ellipse cx="396" cy="33" rx="11" ry="3"/>
+  </g>
+
+  <!-- aluminium posts and base rail -->
+  <rect x="30" y="24" width="12" height="332" fill="url(#alu)"/>
+  <rect x="480" y="24" width="12" height="332" fill="url(#alu)"/>
+  <polygon points="644,57 656,60 656,325 644,323" fill="url(#aluSide)"/>
+  <rect x="30" y="348" width="462" height="8" fill="#99a5b1"/>
+  <polygon points="486,348 652,316 652,323 486,356" fill="#808d99"/>
+
+  <!-- two chairs flanking a counter -->
+  <g fill="#9e2f27">
+    <rect x="238" y="292" width="46" height="12" rx="4"/>
+    <rect x="240" y="252" width="42" height="42" rx="7" fill="#b93b31"/>
+    <rect x="244" y="302" width="6" height="48"/><rect x="272" y="302" width="6" height="48"/>
+    <rect x="420" y="292" width="46" height="12" rx="4"/>
+    <rect x="422" y="252" width="42" height="42" rx="7" fill="#b93b31"/>
+    <rect x="426" y="302" width="6" height="48"/><rect x="454" y="302" width="6" height="48"/>
+  </g>
+  <ellipse cx="261" cy="352" rx="36" ry="7" fill="#000" opacity=".35"/>
+  <ellipse cx="443" cy="352" rx="36" ry="7" fill="#000" opacity=".35"/>
+
+  <ellipse cx="352" cy="356" rx="68" ry="10" fill="#000" opacity=".4"/>
+  <polygon points="302,258 404,258 418,247 316,247" fill="#39434e"/>
+  <rect x="302" y="258" width="102" height="98" fill="url(#counter)"/>
+  <rect x="302" y="258" width="102" height="98" fill="none" stroke="#c7d0d8" stroke-width="2"/>
+  <polygon points="404,258 418,247 418,345 404,356" fill="#c6cfd7"/>
+
+  <!-- floor reflections -->
+  <rect x="36" y="356" width="450" height="40" fill="url(#refl)"/>
+  <polygon points="486,356 652,323 652,352 486,392" fill="url(#refl)"/>
+  <rect x="302" y="356" width="102" height="30" fill="url(#refl)"/>
+
+  <rect width="684" height="414" fill="url(#vignette)"/>
 </svg>
