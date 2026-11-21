@@ -28,6 +28,7 @@ const SLOGAN = { size: 46, line: 60 };                // the entrepreneur's own 
 const BODY = { size: 30, line: 40 };                  // who, and where to find them
 const META = { size: 24, line: 32 };                  // when and where the fair is
 const GAP = 62;                                       // breathing room above the fair details
+const NAME_MAX = 40;                                  // past this a name cannot sit on the facia
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const DATES = '২২ থেকে ২৮ নভেম্বর ২০২৬';
 const VENUE = 'স্থান: বাংলাদেশ-চীন মৈত্রী সম্মেলন কেন্দ্র, আগারগাঁও, ঢাকা';
@@ -119,6 +120,31 @@ function placeholder(ctx, box, label) {
   ctx.restore();
 }
 
+// Fits a business name into the space a facia leaves it: one line where it can, the
+// evenest two-line break where it cannot, shrinking only as far as it has to.
+function fitName(ctx, name, room, height) {
+  const measure = (text, size) => {
+    ctx.font = font(700, size);
+    return ctx.measureText(text).width;
+  };
+  for (let size = 30; size >= 19; size--) {
+    if (measure(name, size) <= room) return { size, lines: [name] };
+  }
+  const words = name.split(/\s+/).filter(Boolean);
+  for (let size = 25; size >= 14 && words.length > 1; size--) {
+    if (size * 2.3 > height) continue;
+    let narrowest = Infinity, at = 1;
+    for (let i = 1; i < words.length; i++) {
+      const w = Math.max(measure(words.slice(0, i).join(' '), size), measure(words.slice(i).join(' '), size));
+      if (w < narrowest) { narrowest = w; at = i; }
+    }
+    if (narrowest <= room) {
+      return { size, lines: [words.slice(0, at).join(' '), words.slice(at).join(' ')] };
+    }
+  }
+  return { size: 14, lines: [name] };   // one very long word: nothing left to break on
+}
+
 // Brands a stall's signboard: logo and name to the left, stall number on a plate at the
 // right. `dark` is for the strip laid over someone's own photo, light for the drawn stall.
 function facia(ctx, box, { logo, name, number }, dark) {
@@ -149,15 +175,14 @@ function facia(ctx, box, { logo, name, number }, dark) {
     x += w * k + 14;
   }
   if (name) {
-    let size = 30;
-    ctx.font = font(700, size);
-    const width = ctx.measureText(name).width;
-    if (width > right - x) size = Math.max(13, Math.floor(size * (right - x) / width));
-    ctx.font = font(700, size);
+    const fit = fitName(ctx, name, right - x, box.h - 10);
+    ctx.font = font(700, fit.size);
     ctx.fillStyle = dark ? CREAM : INK;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(name, x, mid + 1);
+    fit.lines.forEach((line, i) => {
+      ctx.fillText(line, x, mid + (i - (fit.lines.length - 1) / 2) * fit.size * 1.2 + 1);
+    });
   }
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
@@ -467,7 +492,11 @@ export default function Page() {
             <b>৩. স্টলের তথ্য <span>Stall details</span></b>
             <div className="grid">
               <label>ব্যবসার নাম · Business name
-                <input value={business} maxLength={60} onChange={e => setBusiness(e.target.value)} placeholder="আপনার প্রতিষ্ঠানের নাম" />
+                <input
+                  value={business} maxLength={NAME_MAX} placeholder="আপনার প্রতিষ্ঠানের নাম"
+                  onChange={e => setBusiness(e.target.value.slice(0, NAME_MAX))}
+                />
+                {business.length > NAME_MAX - 14 && <small>{business.length}/{NAME_MAX}</small>}
               </label>
               <label>স্টল নম্বর · Stall number
                 <input value={stallNo} maxLength={12} onChange={e => setStallNo(e.target.value)} placeholder="১২৩" />

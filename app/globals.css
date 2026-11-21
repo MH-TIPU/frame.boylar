@@ -41,6 +41,7 @@ input[type=range] { width: 100%; accent-color: var(--green); }
 .fields small { margin: 0 0 18px; }
 .fields .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 18px; }
 .fields label { display: block; font-size: .9rem; }
+.fields label small { margin: 4px 0 0; font-size: .78rem; text-align: right; }
 .fields input, .fields textarea { display: block; width: 100%; margin-top: 6px; padding: 10px; font: inherit; border: 1px solid var(--line); border-radius: 6px; }
 .fields textarea { resize: vertical; }
 
