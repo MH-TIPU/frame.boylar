@@ -44,21 +44,32 @@
   <g opacity=".16">
     <!-- down the left of the circle -->
     <use href="#basket" transform="translate(60 350) scale(2.1)"/>
+    <use href="#sewing" transform="translate(300 348) scale(2.1)"/>
     <use href="#pot" transform="translate(70 1300) scale(2.1)"/>
     <use href="#fish" transform="translate(120 1480) scale(2)"/>
+    <use href="#mill" transform="translate(250 1420) scale(2.1)"/>
+
+    <!-- across the top, over the shoulder of the circle -->
+    <use href="#fish" transform="translate(880 330) scale(2)"/>
+    <use href="#pot" transform="translate(1090 396) scale(2.1)"/>
 
     <!-- above the headline -->
     <use href="#mill" transform="translate(1180 352) scale(2.1)"/>
     <use href="#shop" transform="translate(1620 360) scale(2.1)"/>
+    <use href="#basket" transform="translate(1830 452) scale(2.1)"/>
 
     <!-- the column to the right of it -->
     <use href="#sewing" transform="translate(1770 660) scale(2.1)"/>
     <use href="#fish" transform="translate(1760 900) scale(2)"/>
     <use href="#pot" transform="translate(1800 1090) scale(2.1)"/>
 
+    <use href="#basket" transform="translate(1790 1270) scale(2.1)"/>
+
     <!-- and below it -->
     <use href="#shop" transform="translate(1250 1340) scale(2.1)"/>
     <use href="#fish" transform="translate(1480 1460) scale(2)"/>
     <use href="#mill" transform="translate(1640 1330) scale(2.1)"/>
+    <use href="#sewing" transform="translate(1120 1450) scale(2.1)"/>
+    <use href="#pot" transform="translate(1880 1430) scale(2.1)"/>
   </g>
 </svg>
