@@ -12,11 +12,14 @@ const FONT = hind.style.fontFamily;
 
 // Geometry in the frame's own 2000x2000 pixel space (measured from public/frames/smefair.jpg).
 const SIZE = 2000;
-const CIRCLE = { x: 742.5, y: 935.5, r: 400 };      // smaller than the heavy ring in the artwork
-const MAT = { inner: 556, outer: 602 };             // paints that ring out, fading into the cloud
-const WIPE = { x: 1300, y: 525, w: 580, h: 830 };   // hides the artwork's five-line headline
+const CIRCLE = { x: 700, y: 930, r: 380 };
 const HEAD = ['আমি আসছি', 'আপনি আসছেন তো?'];
-const HEAD_BOX = { x: 1235, w: 690, mid: 935 };     // where that headline is set again, in two lines
+const HEAD_BOX = { x: 1200, w: 740, mid: 930 };     // clear of the circle and its ring
+// soft light through the sky: x, y, radius, strength
+const PUFFS = [
+  [250, 520, 420, 0.55], [1520, 470, 450, 0.5], [1780, 1180, 380, 0.42],
+  [430, 1300, 430, 0.48], [1040, 760, 520, 0.3], [980, 1420, 360, 0.35],
+];
 const LOGO = { x: 1480, y: 1646, w: 440, h: 140 };  // slot for the entrepreneur's own logo
 const BAND = { y: 106, h: 209 };                    // the cream strip, repainted with the fair's lockup
 const FOOT = { y: 1506, h: 416 };                   // the old logo row and wave, repainted as one band
@@ -36,39 +39,35 @@ export default function Page() {
   const [zoom, setZoom] = useState(1);
 
   function draw() {
-    if (!s.frame) return;
-    const ctx = canvas.current.getContext('2d');
-    ctx.drawImage(s.frame, 0, 0, SIZE, SIZE);
-
-    // soften the artwork's five-line headline away: a blurred patch in the cloud's own
-    // tone, so it can be set again in two lines below
+    const cv = canvas.current;
+    if (!cv) return;
+    const ctx = cv.getContext('2d');
+    // the sky, drawn rather than taken from the artwork, so nothing in it constrains
+    // where the photo and the headline can sit
+    ctx.fillStyle = '#efecd9';
+    ctx.fillRect(0, 0, SIZE, SIZE);
+    const top = BAND.y + BAND.h, mid = FOOT.y - top;
+    const sky = ctx.createLinearGradient(0, top, 0, FOOT.y);
+    sky.addColorStop(0, '#f9f6e8');
+    sky.addColorStop(1, '#e8e4ca');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, top, SIZE, mid);
     ctx.save();
-    ctx.filter = 'blur(30px)';
-    ctx.fillStyle = '#f0efd3';
-    const r = 140;
     ctx.beginPath();
-    ctx.moveTo(WIPE.x + r, WIPE.y);
-    ctx.arcTo(WIPE.x + WIPE.w, WIPE.y, WIPE.x + WIPE.w, WIPE.y + WIPE.h, r);
-    ctx.arcTo(WIPE.x + WIPE.w, WIPE.y + WIPE.h, WIPE.x, WIPE.y + WIPE.h, r);
-    ctx.arcTo(WIPE.x, WIPE.y + WIPE.h, WIPE.x, WIPE.y, r);
-    ctx.arcTo(WIPE.x, WIPE.y, WIPE.x + WIPE.w, WIPE.y, r);
-    ctx.closePath();
-    ctx.fill();
+    ctx.rect(0, top, SIZE, mid);
+    ctx.clip();
+    for (const [cx, cy, r, alpha] of PUFFS) {
+      const puff = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      puff.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+      puff.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = puff;
+      ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    }
     ctx.restore();
 
     if (s.motifs) ctx.drawImage(s.motifs, 0, 0, SIZE, SIZE);   // small trades over the sky
 
-    // paint out the artwork's heavy ring, fading into the cloud so there is no seam
-    const mat = ctx.createRadialGradient(CIRCLE.x, CIRCLE.y, 0, CIRCLE.x, CIRCLE.y, MAT.outer);
-    mat.addColorStop(0, 'rgba(237, 235, 210, 1)');
-    mat.addColorStop(MAT.inner / MAT.outer, 'rgba(237, 235, 210, 1)');
-    mat.addColorStop(1, 'rgba(237, 235, 210, 0)');
-    ctx.fillStyle = mat;
-    ctx.beginPath();
-    ctx.arc(CIRCLE.x, CIRCLE.y, MAT.outer, 0, Math.PI * 2);
-    ctx.fill();
-
-    // repaint the cream strip: the fair's own logo and name, then when and where
+    // the cream strip: the fair's own logo and name, then when and where
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, BAND.y, SIZE, BAND.h);
     if (s.mela) {
@@ -162,14 +161,13 @@ export default function Page() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [frame, motifs, mela, chakri] = await Promise.all([
-        loadImage('/frames/smefair.jpg'),
+      const [motifs, mela, chakri] = await Promise.all([
         loadImage('/frames/smemotifs.svg').catch(() => null),
         loadImage('/logos/mela2026.png').catch(() => null),
         loadImage('/logos/chakri.png').catch(() => null),
       ]);
       if (!alive) return;
-      Object.assign(s, { frame, motifs, mela, chakri });
+      Object.assign(s, { motifs, mela, chakri });
       try {
         await Promise.all([400, 700].map(w => document.fonts.load(`${w} 52px ${FONT}`)));
         await document.fonts.ready;
