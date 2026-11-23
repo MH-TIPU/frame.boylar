@@ -188,19 +188,15 @@
     <use href="#pot" transform="translate(186 520) scale(1.15)"/>
     <use href="#sewing" transform="translate(276 528) scale(1)"/>
 
-    <!-- the middle, where the profile photo sits on a phone -->
-    <use href="#mill" transform="translate(636 178) scale(1.2)"/>
-    <use href="#shop" transform="translate(792 172) scale(1.2)"/>
-    <use href="#pot" transform="translate(944 186) scale(1.2)"/>
-    <use href="#basket" transform="translate(644 300) scale(1.2)"/>
-    <use href="#sewing" transform="translate(794 296) scale(1.2)"/>
-    <use href="#fish" transform="translate(938 318) scale(1.2)"/>
-    <use href="#fish" transform="translate(640 428) scale(1.2)"/>
-    <use href="#mill" transform="translate(786 414) scale(1.2)"/>
-    <use href="#basket" transform="translate(948 420) scale(1.1)"/>
-    <use href="#shop" transform="translate(654 524) scale(1.1)"/>
-    <use href="#pot" transform="translate(812 530) scale(1.1)"/>
-    <use href="#sewing" transform="translate(944 536) scale(1)"/>
+    <!-- the strip between the column and the stall, which the profile photo covers -->
+    <use href="#mill" transform="translate(630 182) scale(1.15)"/>
+    <use href="#pot" transform="translate(772 190) scale(1.1)"/>
+    <use href="#basket" transform="translate(634 294) scale(1.15)"/>
+    <use href="#sewing" transform="translate(760 300) scale(1.1)"/>
+    <use href="#fish" transform="translate(628 410) scale(1.2)"/>
+    <use href="#shop" transform="translate(760 404) scale(1.1)"/>
+    <use href="#pot" transform="translate(640 516) scale(1.1)"/>
+    <use href="#fish" transform="translate(766 534) scale(1.1)"/>
 
     <!-- right margin -->
     <use href="#pot" transform="translate(1524 190) scale(1.1)"/>

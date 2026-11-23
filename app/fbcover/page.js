@@ -29,13 +29,16 @@ const BAND = 124;                                     // cream strip at the top:
 const META_W = 350;                                   // the dates and address, set beside the fair's name
 const AREA = { y: BAND + 24, h: H - BAND - 24 - 28 };  // the room left under the band
 const COL = { x: SAFE.x, w: CLEAR.x - SAFE.x - 10 };  // the left column, clear of that photo
-const SLOT = { x: SAFE.x, w: 230, h: 90 };            // the entrepreneur's own logo
-const STALL = { x: CLEAR.x + CLEAR.w, y: 0, w: 460, h: 278 };   // 684:414, as booth.svg
+const SLOT = { x: SAFE.x, w: 240, h: 112 };           // the entrepreneur's own logo
+// The stall is a photo, not words, so it is the one thing that may run under the profile
+// photo: it starts above that photo's top edge and only loses a corner of itself to it.
+// Its right edge stops short of 1280 so the number on its signboard is never cut in half.
+const STALL = { x: 860, y: 0, w: 600, h: 363 };       // 684:414, as booth.svg
 const NEED = { w: STALL.w * SCALE, h: STALL.h * SCALE };   // the photo size the slot can use
 const FACIA = 60;                                     // signboard strip laid over an uploaded photo
 const MARK = { right: STALL.x + STALL.w, h: 46 };     // the organiser's logo, under the stall
-const SLOGAN = { size: 34, line: 44 };                // the entrepreneur's own line, set in the curved face
-const BODY = { size: 30, line: 40 };                  // who they are and which stall
+const SLOGAN = { size: 38, line: 50 };                // the entrepreneur's own line, set in the curved face
+const BODY = { size: 34, line: 46 };                  // who they are and which stall
 const META = { size: 20, line: 28 };                  // when and where the fair is
 const NAME_MAX = 40;                                  // past this a name cannot sit on the facia
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
@@ -323,19 +326,28 @@ export default function Page() {
       logoW = s.logo.width * k;
       logoH = s.logo.height * k;
     }
-    const slogan = message.trim()
-      ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], COL.w, SLOGAN.size)
-      : null;
-    // A narrow column reads better broken where the sentence breaks than wherever it runs out
-    // of room, so the name, the claim and the stall number are laid out a part at a time.
-    const lines = layout(ctx, [{ text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 }], COL.w, BODY.size)
-      .concat(layout(ctx, [{ text: brand.number ? 'আছে এবারের মেলায়' : 'আছে এবারের মেলায়।' }], COL.w, BODY.size))
-      .concat(brand.number
-        ? layout(ctx, [{ text: 'স্টল নম্বর' }, { text: brand.number, weight: 700, mark: true }],
-          COL.w - 24, BODY.size)   // 24 for the highlight's own padding
-        : []);
+    // The column is narrow and the height is fixed, so a long slogan or a long name has to
+    // be allowed to set the type smaller. Set it as large as it goes and come down from there.
+    // A narrow column also reads better broken where the sentence breaks than wherever it runs
+    // out of room, so the name, the claim and the stall number are laid out a part at a time.
+    let k = 1, slogan, lines, slog, body, stackH;
+    for (;;) {
+      slog = { size: Math.round(SLOGAN.size * k), line: Math.round(SLOGAN.line * k) };
+      body = { size: Math.round(BODY.size * k), line: Math.round(BODY.line * k) };
+      slogan = message.trim()
+        ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], COL.w, slog.size)
+        : null;
+      lines = layout(ctx, [{ text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 }], COL.w, body.size)
+        .concat(layout(ctx, [{ text: brand.number ? 'আছে এবারের মেলায়' : 'আছে এবারের মেলায়।' }], COL.w, body.size))
+        .concat(brand.number
+          ? layout(ctx, [{ text: 'স্টল নম্বর' }, { text: brand.number, weight: 700, mark: true }],
+            COL.w - 24, body.size)   // 24 for the highlight's own padding
+          : []);
+      stackH = logoH + 18 + (slogan ? slogan.length * slog.line + 16 : 0) + lines.length * body.line;
+      if (stackH <= AREA.h || k <= 0.62) break;
+      k -= 0.04;
+    }
 
-    const stackH = logoH + 18 + (slogan ? slogan.length * SLOGAN.line + 16 : 0) + lines.length * BODY.line;
     let y = AREA.y + Math.max(0, (AREA.h - stackH) / 2);
     if (s.logo) {
       ctx.drawImage(s.logo, SLOT.x, y, logoW, logoH);
@@ -344,15 +356,15 @@ export default function Page() {
     }
     y += logoH + 18;
     if (slogan) {
-      drawLines(ctx, slogan, COL.x, y + SLOGAN.size * 0.8, SLOGAN.size, SLOGAN.line, DARK);
-      y += slogan.length * SLOGAN.line + 16;
+      drawLines(ctx, slogan, COL.x, y + slog.size * 0.8, slog.size, slog.line, DARK);
+      y += slogan.length * slog.line + 16;
     }
-    drawLines(ctx, lines, COL.x, y + BODY.size * 0.82, BODY.size, BODY.line, INK);
+    drawLines(ctx, lines, COL.x, y + body.size * 0.82, body.size, body.line, INK);
 
     // the stall: the entrepreneur's own photo if they have one, otherwise the standard
     // stall drawing. The number goes on a facia either way.
     const shot = s.stall || s.fixed.booth;
-    STALL.y = AREA.y + Math.max(0, (AREA.h - (STALL.h + 18 + MARK.h)) / 2);
+    STALL.y = AREA.y;                      // top-aligned, so its signboard clears the profile photo
     MARK.y = STALL.y + STALL.h + 18;
     ctx.save();
     roundRect(ctx, STALL.x, STALL.y, STALL.w, STALL.h, 18);
