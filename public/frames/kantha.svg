@@ -169,6 +169,46 @@
   </g>
 
 
+  <!-- The banner leaves three places bare: the margin down each side and the gap through
+       the middle, where a phone lays the page's profile photo. Nothing is set there, so the
+       trades this fair is for are drawn properly rather than ghosted - still stitch-work,
+       but dark enough to see: workshops, stalls, pots, cane and cloth. -->
+  <g opacity=".24">
+    <!-- left margin -->
+    <use href="#shop" transform="translate(26 186) scale(1.2)"/>
+    <use href="#mill" transform="translate(160 182) scale(1.1)"/>
+    <use href="#pot" transform="translate(280 196) scale(1.1)"/>
+    <use href="#basket" transform="translate(40 300) scale(1.2)"/>
+    <use href="#sewing" transform="translate(166 296) scale(1.15)"/>
+    <use href="#fish" transform="translate(276 318) scale(1.2)"/>
+    <use href="#fish" transform="translate(22 418) scale(1.2) "/>
+    <use href="#shop" transform="translate(140 404) scale(1.2)"/>
+    <use href="#basket" transform="translate(272 410) scale(1.1)"/>
+    <use href="#mill" transform="translate(40 512) scale(1.2)"/>
+    <use href="#pot" transform="translate(186 520) scale(1.15)"/>
+    <use href="#sewing" transform="translate(276 528) scale(1)"/>
+
+    <!-- the middle, where the profile photo sits on a phone -->
+    <use href="#mill" transform="translate(636 178) scale(1.2)"/>
+    <use href="#shop" transform="translate(792 172) scale(1.2)"/>
+    <use href="#pot" transform="translate(944 186) scale(1.2)"/>
+    <use href="#basket" transform="translate(644 300) scale(1.2)"/>
+    <use href="#sewing" transform="translate(794 296) scale(1.2)"/>
+    <use href="#fish" transform="translate(938 318) scale(1.2)"/>
+    <use href="#fish" transform="translate(640 428) scale(1.2)"/>
+    <use href="#mill" transform="translate(786 414) scale(1.2)"/>
+    <use href="#basket" transform="translate(948 420) scale(1.1)"/>
+    <use href="#shop" transform="translate(654 524) scale(1.1)"/>
+    <use href="#pot" transform="translate(812 530) scale(1.1)"/>
+    <use href="#sewing" transform="translate(944 536) scale(1)"/>
+
+    <!-- right margin -->
+    <use href="#pot" transform="translate(1524 190) scale(1.1)"/>
+    <use href="#fish" transform="translate(1512 304) scale(1.2)"/>
+    <use href="#basket" transform="translate(1528 404) scale(1.1)"/>
+    <use href="#shop" transform="translate(1518 512) scale(1)"/>
+  </g>
+
   <!-- stitched border, two rows with a run of dots between them -->
   <g fill="none" stroke-linecap="round">
     <rect x="15" y="15" width="1610" height="594" stroke="#b4452f" stroke-width="2.4" stroke-dasharray="11 9" opacity=".14"/>

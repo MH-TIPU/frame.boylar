@@ -25,17 +25,18 @@ const W = 1640, H = 624, SCALE = 2;
 // deliberately left as bare kantha, which is exactly where the profile photo lands.
 const SAFE = { x: 360, w: 920 };                      // 360..1280: what a phone keeps
 const CLEAR = { x: 616, w: 424 };                     // 616..1040: left empty for the profile photo
-const BAND = 152;                                     // cream strip at the top: all of the fair's detail
+const BAND = 124;                                     // cream strip at the top: all of the fair's detail
+const META_W = 350;                                   // the dates and address, set beside the fair's name
 const AREA = { y: BAND + 24, h: H - BAND - 24 - 28 };  // the room left under the band
 const COL = { x: SAFE.x, w: CLEAR.x - SAFE.x - 10 };  // the left column, clear of that photo
 const SLOT = { x: SAFE.x, w: 230, h: 90 };            // the entrepreneur's own logo
-const STALL = { x: CLEAR.x + CLEAR.w, y: 0, w: 440, h: 266 };   // 684:414, as booth.svg
+const STALL = { x: CLEAR.x + CLEAR.w, y: 0, w: 460, h: 278 };   // 684:414, as booth.svg
 const NEED = { w: STALL.w * SCALE, h: STALL.h * SCALE };   // the photo size the slot can use
 const FACIA = 60;                                     // signboard strip laid over an uploaded photo
 const MARK = { right: STALL.x + STALL.w, h: 46 };     // the organiser's logo, under the stall
 const SLOGAN = { size: 34, line: 44 };                // the entrepreneur's own line, set in the curved face
 const BODY = { size: 30, line: 40 };                  // who they are and which stall
-const META = { size: 22, line: 30 };                  // when and where the fair is
+const META = { size: 20, line: 28 };                  // when and where the fair is
 const NAME_MAX = 40;                                  // past this a name cannot sit on the facia
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const DATES = '২২ থেকে ২৮ নভেম্বর ২০২৬';
@@ -99,15 +100,11 @@ function pinIcon(ctx, x, y, size, colour) {
   ctx.fill();
 }
 
-// One line of fair detail, icon and text centred together on the banner.
-function detailCentre(ctx, icon, text, cx, top, colour) {
-  ctx.font = font(400, META.size);
-  const x = cx - (META.size + 14 + ctx.measureText(text).width) / 2;
+// One block of fair detail: an icon, then text wrapped beside it.
+function detail(ctx, icon, lines, x, top, colour) {
   icon(ctx, x, top + 3, META.size, GREEN);
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = colour;
-  ctx.fillText(text, x + META.size + 14, top + META.size * 0.82);
+  drawLines(ctx, lines, x + META.size + 12, top + META.size * 0.82, META.size, META.line, colour);
+  return lines.length * META.line;
 }
 
 // Saves as the business name, with anything a filesystem would object to taken out.
@@ -271,18 +268,41 @@ export default function Page() {
       ctx.fillRect(0, 0, W, H);
     }
 
-    // cream band: the fair's logo at the left, then its name, dates and address centred.
-    // All of this is above the profile photo and inside the crop, so a phone always shows it.
+    // cream band, read left to right: the fair's logo, its name, then its dates and address.
+    // The whole row sits inside SAFE and above the profile photo, so a phone always shows it.
+    const bandMid = BAND / 2;
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, 0, W, BAND);
-    byHeight(ctx, s.fixed.mela, SAFE.x, BAND / 2, 76);
-    ctx.font = font(700, 36);
-    ctx.textAlign = 'center';
+    const titleX = SAFE.x + byHeight(ctx, s.fixed.mela, SAFE.x, bandMid, 72) + 30;
+    const metaX = SAFE.x + SAFE.w - META_W;
+
+    let titleSize = 36;                      // shrinks only as far as the room beside it demands
+    ctx.font = font(700, titleSize);
+    while (titleSize > 24 && ctx.measureText(FAIR).width > metaX - 30 - titleX) {
+      ctx.font = font(700, --titleSize);
+    }
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = DARK;
-    ctx.fillText(FAIR, W / 2, 44);
-    detailCentre(ctx, calendarIcon, DATES, W / 2, 78, '#2f4a40');
-    detailCentre(ctx, pinIcon, VENUE, W / 2, 110, '#2f4a40');
+    ctx.fillText(FAIR, titleX, bandMid);
+
+    ctx.save();                              // a stitched rule between the name and the detail
+    ctx.strokeStyle = '#b4452f';
+    ctx.globalAlpha = 0.3;
+    ctx.lineWidth = 2.2;
+    ctx.setLineDash([7, 6]);
+    ctx.beginPath();
+    ctx.moveTo(metaX - 22, bandMid - 32);
+    ctx.lineTo(metaX - 22, bandMid + 32);
+    ctx.stroke();
+    ctx.restore();
+
+    const metaW = META_W - META.size - 12;
+    const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
+    const venue = layout(ctx, [{ text: VENUE }], metaW, META.size);
+    let metaY = bandMid - ((dates.length + venue.length) * META.line + 8) / 2;
+    metaY += detail(ctx, calendarIcon, dates, metaX, metaY, '#2f4a40') + 8;
+    detail(ctx, pinIcon, venue, metaX, metaY, '#2f4a40');
     ctx.save();                       // a line of kantha stitch closes the band off
     ctx.strokeStyle = '#b4452f';
     ctx.globalAlpha = 0.28;
