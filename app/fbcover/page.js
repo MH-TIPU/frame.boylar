@@ -200,6 +200,32 @@ function facia(ctx, box, { logo, name, number }, dark) {
   ctx.textBaseline = 'alphabetic';
 }
 
+// The stall number on a plate of its own, the same dark green and yellow the stall's
+// signboard uses, so the two read as one thing. Returns the width it takes.
+function badgeSize(ctx, h, number) {
+  const label = Math.round(h * 0.34), figure = Math.round(h * 0.5);
+  ctx.font = font(400, label);
+  const labelW = ctx.measureText('স্টল নম্বর').width;
+  ctx.font = font(700, figure);
+  return { label, figure, labelW, w: 20 + labelW + 14 + ctx.measureText(number).width + 20 };
+}
+
+function stallBadge(ctx, x, y, h, number) {
+  const b = badgeSize(ctx, h, number);
+  ctx.fillStyle = DARK;
+  roundRect(ctx, x, y, b.w, h, 10);
+  ctx.fill();
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.font = font(400, b.label);
+  ctx.fillStyle = CREAM;
+  ctx.fillText('স্টল নম্বর', x + 20, y + h / 2 + 1);
+  ctx.font = font(700, b.figure);
+  ctx.fillStyle = YELLOW;
+  ctx.fillText(number, x + 20 + b.labelW + 14, y + h / 2 + 1);
+  ctx.textBaseline = 'alphabetic';
+}
+
 // Lays out a sentence made of styled runs, wrapping on spaces.
 function layout(ctx, runs, maxW, size) {
   const lines = [];
@@ -231,12 +257,7 @@ function drawLines(ctx, lines, x, baseline, size, lineH, colour) {
     for (const item of line) {
       cx += item.gap;
       ctx.font = font(item.weight || 400, size, item.family);
-      if (item.mark) {
-        ctx.fillStyle = YELLOW;
-        roundRect(ctx, cx - 9, y - size * 0.82, item.w + 18, size * 1.12, 7);
-        ctx.fill();
-      }
-      ctx.fillStyle = item.mark ? INK : colour;
+      ctx.fillStyle = colour;
       ctx.fillText(item.word, cx, y);
       cx += item.w;
     }
@@ -326,25 +347,28 @@ export default function Page() {
       logoW = s.logo.width * k;
       logoH = s.logo.height * k;
     }
-    // The column is narrow and the height is fixed, so a long slogan or a long name has to
-    // be allowed to set the type smaller. Set it as large as it goes and come down from there.
-    // A narrow column also reads better broken where the sentence breaks than wherever it runs
-    // out of room, so the name, the claim and the stall number are laid out a part at a time.
-    let k = 1, slogan, lines, slog, body, stackH;
+    // The column reads name first and largest, then the claim quietly under it, then the
+    // stall number on its plate, then a stitched rule and the slogan as a closing line.
+    // It is narrow and its height is fixed, so a long slogan or a long name has to be
+    // allowed to set the type smaller: start as large as it goes and come down from there.
+    // Each part is laid out on its own, so the lines break where the sentence breaks.
+    let k = 1, slogan, nameLines, claimLines, slog, body, name, badgeH, stackH;
     for (;;) {
       slog = { size: Math.round(SLOGAN.size * k), line: Math.round(SLOGAN.line * k) };
       body = { size: Math.round(BODY.size * k), line: Math.round(BODY.line * k) };
+      name = { size: Math.round(BODY.size * 1.42 * k), line: Math.round(BODY.line * 1.38 * k) };
       slogan = message.trim()
         ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], COL.w, slog.size)
         : null;
-      lines = layout(ctx, [{ text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 }], COL.w, body.size)
-        .concat(layout(ctx, [{ text: brand.number ? 'আছে এবারের মেলায়' : 'আছে এবারের মেলায়।' }], COL.w, body.size))
-        .concat(brand.number
-          ? layout(ctx, [{ text: 'স্টল নম্বর' }, { text: brand.number, weight: 700, mark: true }],
-            COL.w - 24, body.size)   // 24 for the highlight's own padding
-          : []);
-      stackH = logoH + 18 + (slogan ? slogan.length * slog.line + 16 : 0) + lines.length * body.line;
-      if (stackH <= AREA.h || k <= 0.62) break;
+      nameLines = layout(ctx, [{ text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 }], COL.w, name.size);
+      claimLines = layout(ctx, [{ text: brand.number ? 'আছে এবারের মেলায়' : 'আছে এবারের মেলায়।' }], COL.w, body.size);
+      badgeH = brand.number ? Math.round(body.size * 2) : 0;
+      stackH = logoH + 24 + nameLines.length * name.line + claimLines.length * body.line
+        + (badgeH ? 18 + badgeH : 0)
+        + (slogan ? 52 + slogan.length * slog.line : 0);
+      const fits = stackH <= AREA.h
+        && (!badgeH || badgeSize(ctx, badgeH, brand.number).w <= COL.w);
+      if (fits || k <= 0.58) break;
       k -= 0.04;
     }
 
@@ -354,12 +378,34 @@ export default function Page() {
     } else {
       placeholder(ctx, { ...SLOT, y }, 'আপনার লোগো');
     }
-    y += logoH + 18;
-    if (slogan) {
-      drawLines(ctx, slogan, COL.x, y + slog.size * 0.8, slog.size, slog.line, DARK);
-      y += slogan.length * slog.line + 16;
+    y += logoH + 24;
+
+    drawLines(ctx, nameLines, COL.x, y + name.size * 0.82, name.size, name.line, DARK);
+    y += nameLines.length * name.line;
+    drawLines(ctx, claimLines, COL.x, y + body.size * 0.82, body.size, body.line, '#2f4a40');
+    y += claimLines.length * body.line;
+
+    if (badgeH) {
+      y += 18;
+      stallBadge(ctx, COL.x, y, badgeH, brand.number);
+      y += badgeH;
     }
-    drawLines(ctx, lines, COL.x, y + body.size * 0.82, body.size, body.line, INK);
+
+    if (slogan) {
+      y += 26;
+      ctx.save();                            // a short run of stitch, closing the block off
+      ctx.strokeStyle = '#b4452f';
+      ctx.globalAlpha = 0.4;
+      ctx.lineWidth = 2.4;
+      ctx.setLineDash([8, 7]);
+      ctx.beginPath();
+      ctx.moveTo(COL.x, y);
+      ctx.lineTo(COL.x + 96, y);
+      ctx.stroke();
+      ctx.restore();
+      y += 26;
+      drawLines(ctx, slogan, COL.x, y + slog.size * 0.8, slog.size, slog.line, '#1f7a5e');
+    }
 
     // the stall: the entrepreneur's own photo if they have one, otherwise the standard
     // stall drawing. The number goes on a facia either way.
