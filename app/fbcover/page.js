@@ -17,17 +17,24 @@ const SCRIPT = galada.style.fontFamily;   // the curved face, used for the sloga
 // smaller than its source file, so this costs nothing in sharpness.
 const W = 1640, H = 624, SCALE = 2;
 const BAND = 98;                                      // cream partner-logo strip at the top
-const CONTENT = { y: 112, h: 452 };                   // everything under the band
-const SLOT = { x: 56, w: 300, h: 120 };               // the entrepreneur's own logo
-const TEXT = { x: 56, w: 860 };
-const STALL = { x: 950, y: 112, w: 634, h: 384 };     // the stall, same shape as booth.svg
+// Facebook never shows the whole cover. The desktop page shows it at 820x312, but the phone
+// app centre-crops to a much taller shape and keeps only the middle ~60% of the width, then
+// lays the page's round profile photo over the bottom centre. Measured off a live page, the
+// phone keeps x 291..1272 and the profile photo covers x 564..999 from y 221 down. So every
+// word that matters lives inside SAFE, and the right-hand half stays above the photo.
+const SAFE = { x: 360, w: 920 };                      // 360..1280, the middle 56%: inside the phone's crop
+const HEAD = { y: 104, h: 112 };                      // the strip above the profile photo, so it always shows
+const CONTENT = { y: 240, h: 352 };                   // the rest, which a phone shows only in part
+const SLOT = { x: SAFE.x, w: 230, h: 88 };            // the entrepreneur's own logo
+const TEXT = { x: SAFE.x, w: 540 };
+const STALL = { x: 940, y: 240, w: 520, h: 315 };     // the stall, same 684:414 shape as booth.svg
 const NEED = { w: STALL.w * SCALE, h: STALL.h * SCALE };   // the photo size the slot can use
-const FACIA = 84;                                     // signboard strip laid over an uploaded photo
-const MARK = { right: 1584, y: 520, h: 58 };          // the organiser's logo, under the stall
-const SLOGAN = { size: 46, line: 60 };                // the entrepreneur's own line, set in the curved face
-const BODY = { size: 30, line: 40 };                  // who, and where to find them
-const META = { size: 24, line: 32 };                  // when and where the fair is
-const GAP = 62;                                       // breathing room above the fair details
+const FACIA = 70;                                     // signboard strip laid over an uploaded photo
+const MARK = { right: 1460, y: 566, h: 46 };          // the organiser's logo, under the stall
+const SLOGAN = { size: 38, line: 48 };                // the entrepreneur's own line, set in the curved face
+const BODY = { size: 32, line: 44 };                  // who they are and which stall: the headline
+const META = { size: 22, line: 30 };                  // when and where the fair is
+const GAP = 30;                                       // breathing room above the fair details
 const NAME_MAX = 40;                                  // past this a name cannot sit on the facia
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const DATES = '২২ থেকে ২৮ নভেম্বর ২০২৬';
@@ -210,12 +217,12 @@ function layout(ctx, runs, maxW, size) {
   return lines;
 }
 
-function drawLines(ctx, lines, x, baseline, size, lineH, colour) {
+function drawLines(ctx, lines, x, baseline, size, lineH, colour, centre) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   lines.forEach((line, i) => {
     const y = baseline + i * lineH;
-    let cx = x;
+    let cx = centre ? x - line.reduce((n, it) => n + it.gap + it.w, 0) / 2 : x;
     for (const item of line) {
       cx += item.gap;
       ctx.font = font(item.weight || 400, size, item.family);
@@ -263,7 +270,7 @@ export default function Page() {
     const mid = BAND / 2;
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, 0, W, BAND);
-    byHeight(ctx, s.fixed.mela, 56, mid, 70);
+    byHeight(ctx, s.fixed.mela, SAFE.x, mid, 66);
     ctx.font = font(700, 36);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -290,38 +297,39 @@ export default function Page() {
       logoW = s.logo.width * k;
       logoH = s.logo.height * k;
     }
-    const sloganX = SLOT.x + logoW + 40;
-    const slogan = message.trim()
-      ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], TEXT.x + TEXT.w - sloganX, SLOGAN.size)
-      : null;
+    // The headline sits high and centred: on a phone this strip is the one part of the
+    // cover that is neither cropped away at the sides nor hidden by the profile photo.
     const body = [
       { text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 },
       { text: brand.number ? 'আছে এবারের মেলায় - স্টল নম্বর' : 'আছে এবারের মেলায়।' },
     ];
     if (brand.number) body.push({ text: brand.number, weight: 700, mark: true });
-    const lines = layout(ctx, body, TEXT.w, BODY.size);
+    const lines = layout(ctx, body, SAFE.w - 24, BODY.size);   // 24 for the highlight's own padding
+    const headTop = HEAD.y + Math.max(0, (HEAD.h - lines.length * BODY.line) / 2);
+    drawLines(ctx, lines, W / 2, headTop + BODY.size * 0.82, BODY.size, BODY.line, INK, true);
+
+    const slogan = message.trim()
+      ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], TEXT.w, SLOGAN.size)
+      : null;
     const metaW = TEXT.w - META.size - 14;
     const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
     const venue = layout(ctx, [{ text: VENUE }], metaW, META.size);
-    const sloganH = slogan ? slogan.length * SLOGAN.line : 0;
-    const rowH = Math.max(SLOT.h, sloganH);
-    const stackH = rowH + 26 + lines.length * BODY.line + GAP
-      + (dates.length + venue.length) * META.line + 8;
+    // Stacked, not side by side: the column is only as wide as the phone's crop allows.
+    const sloganH = slogan ? 18 + slogan.length * SLOGAN.line : 0;
+    const stackH = logoH + sloganH + GAP + (dates.length + venue.length) * META.line + 8;
     let y = CONTENT.y + Math.max(0, (CONTENT.h - stackH) / 2);
 
     if (s.logo) {
-      ctx.drawImage(s.logo, SLOT.x, y + (rowH - logoH) / 2, logoW, logoH);
+      ctx.drawImage(s.logo, SLOT.x, y, logoW, logoH);
     } else {
-      placeholder(ctx, { ...SLOT, y: y + (rowH - SLOT.h) / 2 }, 'আপনার লোগো');
+      placeholder(ctx, { ...SLOT, y }, 'আপনার লোগো');
     }
+    y += logoH;
     if (slogan) {
-      drawLines(ctx, slogan, sloganX, y + (rowH - sloganH) / 2 + SLOGAN.size * 0.8,
-        SLOGAN.size, SLOGAN.line, DARK);
+      drawLines(ctx, slogan, TEXT.x, y + 18 + SLOGAN.size * 0.8, SLOGAN.size, SLOGAN.line, DARK);
+      y += sloganH;
     }
-    y += rowH + 26;
-
-    drawLines(ctx, lines, TEXT.x, y + BODY.size * 0.8, BODY.size, BODY.line, INK);
-    y += lines.length * BODY.line + GAP;
+    y += GAP;
 
     y += detail(ctx, calendarIcon, dates, TEXT.x, y, '#2f4a40') + 8;
     detail(ctx, pinIcon, venue, TEXT.x, y, '#2f4a40');
