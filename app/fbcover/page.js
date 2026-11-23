@@ -16,30 +16,18 @@ const SCRIPT = galada.style.fontFamily;   // the curved face, used for the sloga
 // SCALE renders that space onto a larger bitmap: every fixed logo is still drawn
 // smaller than its source file, so this costs nothing in sharpness.
 const W = 1640, H = 624, SCALE = 2;
-// Facebook never shows the whole cover. The desktop page shows it at 820x312, but the phone
-// app centre-crops to a much taller shape, keeps only the middle of the width, and then lays
-// the page's round profile photo over the bottom centre. Measured off a live page, the phone
-// keeps about the middle 56% and that photo covers the middle 44% of it from 38% height down.
-// So the cover is built in three parts: a full-width band of fair detail across the top, a
-// column of the exhibitor's own down the left, the stall out to the right, and the middle
-// deliberately left as bare kantha, which is exactly where the profile photo lands.
-const SAFE = { x: 360, w: 920 };                      // 360..1280: what a phone keeps
-const CLEAR = { x: 616, w: 424 };                     // 616..1040: left empty for the profile photo
-const BAND = 124;                                     // cream strip at the top: all of the fair's detail
-const META_W = 350;                                   // the dates and address, set beside the fair's name
-const AREA = { y: BAND + 24, h: H - BAND - 24 - 28 };  // the room left under the band
-const COL = { x: SAFE.x, w: CLEAR.x - SAFE.x - 10 };  // the left column, clear of that photo
-const SLOT = { x: SAFE.x, w: 240, h: 112 };           // the entrepreneur's own logo
-// The stall is a photo, not words, so it is the one thing that may run under the profile
-// photo: it starts above that photo's top edge and only loses a corner of itself to it.
-// Its right edge stops short of 1280 so the number on its signboard is never cut in half.
-const STALL = { x: 860, y: 0, w: 600, h: 363 };       // 684:414, as booth.svg
+const BAND = 98;                                      // cream partner-logo strip at the top
+const CONTENT = { y: 112, h: 452 };                   // everything under the band
+const SLOT = { x: 56, w: 300, h: 120 };               // the entrepreneur's own logo
+const TEXT = { x: 56, w: 860 };
+const STALL = { x: 950, y: 112, w: 634, h: 384 };     // the stall, same shape as booth.svg
 const NEED = { w: STALL.w * SCALE, h: STALL.h * SCALE };   // the photo size the slot can use
-const FACIA = 60;                                     // signboard strip laid over an uploaded photo
-const MARK = { right: STALL.x + STALL.w, h: 46 };     // the organiser's logo, under the stall
-const SLOGAN = { size: 38, line: 50 };                // the entrepreneur's own line, set in the curved face
-const BODY = { size: 34, line: 46 };                  // who they are and which stall
-const META = { size: 20, line: 28 };                  // when and where the fair is
+const FACIA = 84;                                     // signboard strip laid over an uploaded photo
+const MARK = { right: 1584, y: 520, h: 58 };          // the organiser's logo, under the stall
+const SLOGAN = { size: 46, line: 60 };                // the entrepreneur's own line, set in the curved face
+const BODY = { size: 30, line: 40 };                  // who, and where to find them
+const META = { size: 24, line: 32 };                  // when and where the fair is
+const GAP = 62;                                       // breathing room above the fair details
 const NAME_MAX = 40;                                  // past this a name cannot sit on the facia
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const DATES = '২২ থেকে ২৮ নভেম্বর ২০২৬';
@@ -106,7 +94,7 @@ function pinIcon(ctx, x, y, size, colour) {
 // One block of fair detail: an icon, then text wrapped beside it.
 function detail(ctx, icon, lines, x, top, colour) {
   icon(ctx, x, top + 3, META.size, GREEN);
-  drawLines(ctx, lines, x + META.size + 12, top + META.size * 0.82, META.size, META.line, colour);
+  drawLines(ctx, lines, x + META.size + 14, top + META.size * 0.82, META.size, META.line, colour);
   return lines.length * META.line;
 }
 
@@ -200,32 +188,6 @@ function facia(ctx, box, { logo, name, number }, dark) {
   ctx.textBaseline = 'alphabetic';
 }
 
-// The stall number on a plate of its own, the same dark green and yellow the stall's
-// signboard uses, so the two read as one thing. Returns the width it takes.
-function badgeSize(ctx, h, number) {
-  const label = Math.round(h * 0.34), figure = Math.round(h * 0.5);
-  ctx.font = font(400, label);
-  const labelW = ctx.measureText('স্টল নম্বর').width;
-  ctx.font = font(700, figure);
-  return { label, figure, labelW, w: 20 + labelW + 14 + ctx.measureText(number).width + 20 };
-}
-
-function stallBadge(ctx, x, y, h, number) {
-  const b = badgeSize(ctx, h, number);
-  ctx.fillStyle = DARK;
-  roundRect(ctx, x, y, b.w, h, 10);
-  ctx.fill();
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  ctx.font = font(400, b.label);
-  ctx.fillStyle = CREAM;
-  ctx.fillText('স্টল নম্বর', x + 20, y + h / 2 + 1);
-  ctx.font = font(700, b.figure);
-  ctx.fillStyle = YELLOW;
-  ctx.fillText(number, x + 20 + b.labelW + 14, y + h / 2 + 1);
-  ctx.textBaseline = 'alphabetic';
-}
-
 // Lays out a sentence made of styled runs, wrapping on spaces.
 function layout(ctx, runs, maxW, size) {
   const lines = [];
@@ -257,7 +219,12 @@ function drawLines(ctx, lines, x, baseline, size, lineH, colour) {
     for (const item of line) {
       cx += item.gap;
       ctx.font = font(item.weight || 400, size, item.family);
-      ctx.fillStyle = colour;
+      if (item.mark) {
+        ctx.fillStyle = YELLOW;
+        roundRect(ctx, cx - 9, y - size * 0.82, item.w + 18, size * 1.12, 7);
+        ctx.fill();
+      }
+      ctx.fillStyle = item.mark ? INK : colour;
       ctx.fillText(item.word, cx, y);
       cx += item.w;
     }
@@ -292,41 +259,16 @@ export default function Page() {
       ctx.fillRect(0, 0, W, H);
     }
 
-    // cream band, read left to right: the fair's logo, its name, then its dates and address.
-    // The whole row sits inside SAFE and above the profile photo, so a phone always shows it.
-    const bandMid = BAND / 2;
+    // cream band: the fair's logo at the left, its name centred across the banner
+    const mid = BAND / 2;
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, 0, W, BAND);
-    const titleX = SAFE.x + byHeight(ctx, s.fixed.mela, SAFE.x, bandMid, 72) + 30;
-    const metaX = SAFE.x + SAFE.w - META_W;
-
-    let titleSize = 36;                      // shrinks only as far as the room beside it demands
-    ctx.font = font(700, titleSize);
-    while (titleSize > 24 && ctx.measureText(FAIR).width > metaX - 30 - titleX) {
-      ctx.font = font(700, --titleSize);
-    }
-    ctx.textAlign = 'left';
+    byHeight(ctx, s.fixed.mela, 56, mid, 70);
+    ctx.font = font(700, 36);
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = DARK;
-    ctx.fillText(FAIR, titleX, bandMid);
-
-    ctx.save();                              // a stitched rule between the name and the detail
-    ctx.strokeStyle = '#b4452f';
-    ctx.globalAlpha = 0.3;
-    ctx.lineWidth = 2.2;
-    ctx.setLineDash([7, 6]);
-    ctx.beginPath();
-    ctx.moveTo(metaX - 22, bandMid - 32);
-    ctx.lineTo(metaX - 22, bandMid + 32);
-    ctx.stroke();
-    ctx.restore();
-
-    const metaW = META_W - META.size - 12;
-    const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
-    const venue = layout(ctx, [{ text: VENUE }], metaW, META.size);
-    let metaY = bandMid - ((dates.length + venue.length) * META.line + 8) / 2;
-    metaY += detail(ctx, calendarIcon, dates, metaX, metaY, '#2f4a40') + 8;
-    detail(ctx, pinIcon, venue, metaX, metaY, '#2f4a40');
+    ctx.fillText(FAIR, W / 2, mid + 1);
     ctx.save();                       // a line of kantha stitch closes the band off
     ctx.strokeStyle = '#b4452f';
     ctx.globalAlpha = 0.28;
@@ -338,7 +280,8 @@ export default function Page() {
     ctx.stroke();
     ctx.restore();
 
-    // left column, top to bottom: the logo, their slogan, then who they are and which stall
+    // left column, top to bottom: the logo, their slogan set light and large,
+    // then who they are, when the fair runs and where it is
     const brand = { logo: s.logo, name: business.trim(), number: stallNo.trim() };
     // the logo sets how much room is left for the slogan beside it
     let logoW = SLOT.w, logoH = SLOT.h;
@@ -347,71 +290,45 @@ export default function Page() {
       logoW = s.logo.width * k;
       logoH = s.logo.height * k;
     }
-    // The column reads name first and largest, then the claim quietly under it, then the
-    // stall number on its plate, then a stitched rule and the slogan as a closing line.
-    // It is narrow and its height is fixed, so a long slogan or a long name has to be
-    // allowed to set the type smaller: start as large as it goes and come down from there.
-    // Each part is laid out on its own, so the lines break where the sentence breaks.
-    let k = 1, slogan, nameLines, claimLines, slog, body, name, badgeH, stackH;
-    for (;;) {
-      slog = { size: Math.round(SLOGAN.size * k), line: Math.round(SLOGAN.line * k) };
-      body = { size: Math.round(BODY.size * k), line: Math.round(BODY.line * k) };
-      name = { size: Math.round(BODY.size * 1.42 * k), line: Math.round(BODY.line * 1.38 * k) };
-      slogan = message.trim()
-        ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], COL.w, slog.size)
-        : null;
-      nameLines = layout(ctx, [{ text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 }], COL.w, name.size);
-      claimLines = layout(ctx, [{ text: brand.number ? 'আছে এবারের মেলায়' : 'আছে এবারের মেলায়।' }], COL.w, body.size);
-      badgeH = brand.number ? Math.round(body.size * 2) : 0;
-      stackH = logoH + 24 + nameLines.length * name.line + claimLines.length * body.line
-        + (badgeH ? 18 + badgeH : 0)
-        + (slogan ? 52 + slogan.length * slog.line : 0);
-      const fits = stackH <= AREA.h
-        && (!badgeH || badgeSize(ctx, badgeH, brand.number).w <= COL.w);
-      if (fits || k <= 0.58) break;
-      k -= 0.04;
-    }
+    const sloganX = SLOT.x + logoW + 40;
+    const slogan = message.trim()
+      ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], TEXT.x + TEXT.w - sloganX, SLOGAN.size)
+      : null;
+    const body = [
+      { text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 },
+      { text: brand.number ? 'আছে এবারের মেলায় - স্টল নম্বর' : 'আছে এবারের মেলায়।' },
+    ];
+    if (brand.number) body.push({ text: brand.number, weight: 700, mark: true });
+    const lines = layout(ctx, body, TEXT.w, BODY.size);
+    const metaW = TEXT.w - META.size - 14;
+    const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
+    const venue = layout(ctx, [{ text: VENUE }], metaW, META.size);
+    const sloganH = slogan ? slogan.length * SLOGAN.line : 0;
+    const rowH = Math.max(SLOT.h, sloganH);
+    const stackH = rowH + 26 + lines.length * BODY.line + GAP
+      + (dates.length + venue.length) * META.line + 8;
+    let y = CONTENT.y + Math.max(0, (CONTENT.h - stackH) / 2);
 
-    let y = AREA.y + Math.max(0, (AREA.h - stackH) / 2);
     if (s.logo) {
-      ctx.drawImage(s.logo, SLOT.x, y, logoW, logoH);
+      ctx.drawImage(s.logo, SLOT.x, y + (rowH - logoH) / 2, logoW, logoH);
     } else {
-      placeholder(ctx, { ...SLOT, y }, 'আপনার লোগো');
+      placeholder(ctx, { ...SLOT, y: y + (rowH - SLOT.h) / 2 }, 'আপনার লোগো');
     }
-    y += logoH + 24;
-
-    drawLines(ctx, nameLines, COL.x, y + name.size * 0.82, name.size, name.line, DARK);
-    y += nameLines.length * name.line;
-    drawLines(ctx, claimLines, COL.x, y + body.size * 0.82, body.size, body.line, '#2f4a40');
-    y += claimLines.length * body.line;
-
-    if (badgeH) {
-      y += 18;
-      stallBadge(ctx, COL.x, y, badgeH, brand.number);
-      y += badgeH;
-    }
-
     if (slogan) {
-      y += 26;
-      ctx.save();                            // a short run of stitch, closing the block off
-      ctx.strokeStyle = '#b4452f';
-      ctx.globalAlpha = 0.4;
-      ctx.lineWidth = 2.4;
-      ctx.setLineDash([8, 7]);
-      ctx.beginPath();
-      ctx.moveTo(COL.x, y);
-      ctx.lineTo(COL.x + 96, y);
-      ctx.stroke();
-      ctx.restore();
-      y += 26;
-      drawLines(ctx, slogan, COL.x, y + slog.size * 0.8, slog.size, slog.line, '#1f7a5e');
+      drawLines(ctx, slogan, sloganX, y + (rowH - sloganH) / 2 + SLOGAN.size * 0.8,
+        SLOGAN.size, SLOGAN.line, DARK);
     }
+    y += rowH + 26;
+
+    drawLines(ctx, lines, TEXT.x, y + BODY.size * 0.8, BODY.size, BODY.line, INK);
+    y += lines.length * BODY.line + GAP;
+
+    y += detail(ctx, calendarIcon, dates, TEXT.x, y, '#2f4a40') + 8;
+    detail(ctx, pinIcon, venue, TEXT.x, y, '#2f4a40');
 
     // the stall: the entrepreneur's own photo if they have one, otherwise the standard
     // stall drawing. The number goes on a facia either way.
     const shot = s.stall || s.fixed.booth;
-    STALL.y = AREA.y;                      // top-aligned, so its signboard clears the profile photo
-    MARK.y = STALL.y + STALL.h + 18;
     ctx.save();
     roundRect(ctx, STALL.x, STALL.y, STALL.w, STALL.h, 18);
     ctx.clip();

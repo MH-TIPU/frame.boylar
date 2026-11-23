@@ -9,7 +9,11 @@ export const dynamic = 'force-dynamic';
 
 const COLUMNS = ['source', 'name', 'business', 'url', 'email'];
 const HEADINGS = ['Time', 'Page', 'Name', 'Business', 'Website', 'Email'];
-const PAGES = { smefair: 'ফটো ফ্রেম · Photo frame', fbcover: 'স্টল কভার · Stall cover' };
+const PAGES = {
+  smefair: 'ফটো ফ্রেম · Photo frame',
+  fbcover: 'স্টল কভার · Stall cover',
+  'fbcover-mobile': 'স্টল কভার মোবাইল · Stall cover (mobile)',
+};
 
 const sha = text => createHash('sha256').update(text).digest();
 

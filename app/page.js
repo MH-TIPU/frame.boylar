@@ -4,6 +4,7 @@ import Link from 'next/link';
 const FRAMES = [
   { href: '/smefair', title: 'এসএমই মেলা ২০২৬ ফটো ফ্রেম', note: 'Your photo in the fair frame · "আমি আসছি, আপনি আসছেন তো?"' },
   { href: '/fbcover', title: 'স্টল আমন্ত্রণ ফেসবুক কভার', note: 'A Facebook cover inviting customers to your stall' },
+  { href: '/fbcover-mobile', title: 'স্টল আমন্ত্রণ কভার · মোবাইলের জন্য', note: 'ফেসবুক মোবাইলে কভারের দুই পাশ কাটা পড়ে না · Laid out for Facebook’s mobile crop' },
 ];
 
 export default function Home() {

@@ -10,6 +10,8 @@ stored in PostgreSQL.
 - `/` — index of the available banners
 - `/smefair` — put your photo in the 13th National SME Product Fair 2026 frame
 - `/fbcover` — a Facebook cover inviting customers to your stall at the fair
+- `/fbcover-mobile` — the same invitation, laid out to survive Facebook's mobile crop and
+  the profile photo that covers the middle of a page cover on a phone
 - `/admin` — downloads per page and the collected leads, with CSV export (user `admin`, password from `ADMIN_PASSWORD`)
 - `POST /api/lead` — stores a lead; each page sends its own `source`
 - `POST /api/download` — one row per banner saved, so `/admin` can count them
@@ -18,7 +20,9 @@ stored in PostgreSQL.
 
 - `app/<page>/page.js` — one banner each: canvas drawing, inputs, preview
 - `components/FrameForm.js` — the shared panel: Download plus the optional details we collect
-- `public/frames/` — the standard stall and the kantha ground for `/fbcover`, the trade motifs
+- `public/frames/` — the standard stall and the kantha grounds for the two covers (`kantha.svg`
+  for `/fbcover`, `kantha-mobile.svg`, which carries more visible trade motifs, for
+  `/fbcover-mobile`), the trade motifs
   for `/smefair`. `smefair.jpg` is the fair's original artwork and is no longer loaded: that
   page draws its sky, bands, circle and headline itself.
 - `public/logos/` — the fixed partner logos, cut out with transparent backgrounds

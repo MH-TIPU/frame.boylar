@@ -4,6 +4,7 @@ import Link from 'next/link';
 const FRAMES = [
   { href: '/smefair', label: 'ফটো ফ্রেম' },
   { href: '/fbcover', label: 'স্টল কভার' },
+  { href: '/fbcover-mobile', label: 'স্টল কভার · মোবাইল' },
 ];
 
 export default function FrameNav({ current }) {
