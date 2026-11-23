@@ -12,7 +12,9 @@ stored in PostgreSQL.
 - `/fbcover` — a Facebook cover inviting customers to your stall at the fair
 - `/fbcover-mobile` — the same invitation, laid out to survive Facebook's mobile crop and
   the profile photo that covers the middle of a page cover on a phone
-- `/admin` — downloads per page and the collected leads, with CSV export (user `admin`, password from `ADMIN_PASSWORD`)
+- `/admin` — a dashboard: downloads per page and per day, leads, and CSV export. Sign in with
+  `ADMIN_PASSWORD`; the cookie it sets is an expiry signed with that password, so changing the
+  password signs everyone out
 - `POST /api/lead` — stores a lead; each page sends its own `source`
 - `POST /api/download` — one row per banner saved, so `/admin` can count them
 
@@ -49,7 +51,8 @@ npm start -- -p 3003
 ```
 
 Put `DATABASE_URL` and `ADMIN_PASSWORD` in `.env` on the server (not in git). Serve it over
-HTTPS: the admin password is sent with every request to `/admin`.
+HTTPS: the password is posted to `/admin`, and the cookie is only marked `Secure` when the
+proxy passes `X-Forwarded-Proto: https`.
 
 `schema.sql` only ever adds what is missing, so run it again after a deploy that introduces
 a table: `psql "$(grep ^DATABASE_URL= .env | cut -d= -f2-)" -f schema.sql`.
