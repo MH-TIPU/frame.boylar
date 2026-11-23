@@ -16,25 +16,26 @@ const SCRIPT = galada.style.fontFamily;   // the curved face, used for the sloga
 // SCALE renders that space onto a larger bitmap: every fixed logo is still drawn
 // smaller than its source file, so this costs nothing in sharpness.
 const W = 1640, H = 624, SCALE = 2;
-const BAND = 98;                                      // cream partner-logo strip at the top
 // Facebook never shows the whole cover. The desktop page shows it at 820x312, but the phone
-// app centre-crops to a much taller shape and keeps only the middle ~60% of the width, then
-// lays the page's round profile photo over the bottom centre. Measured off a live page, the
-// phone keeps x 291..1272 and the profile photo covers x 564..999 from y 221 down. So every
-// word that matters lives inside SAFE, and the right-hand half stays above the photo.
-const SAFE = { x: 360, w: 920 };                      // 360..1280, the middle 56%: inside the phone's crop
-const HEAD = { y: 104, h: 112 };                      // the strip above the profile photo, so it always shows
-const CONTENT = { y: 240, h: 352 };                   // the rest, which a phone shows only in part
-const SLOT = { x: SAFE.x, w: 230, h: 88 };            // the entrepreneur's own logo
-const TEXT = { x: SAFE.x, w: 540 };
-const STALL = { x: 940, y: 240, w: 520, h: 315 };     // the stall, same 684:414 shape as booth.svg
+// app centre-crops to a much taller shape, keeps only the middle of the width, and then lays
+// the page's round profile photo over the bottom centre. Measured off a live page, the phone
+// keeps about the middle 56% and that photo covers the middle 44% of it from 38% height down.
+// So the cover is built in three parts: a full-width band of fair detail across the top, a
+// column of the exhibitor's own down the left, the stall out to the right, and the middle
+// deliberately left as bare kantha, which is exactly where the profile photo lands.
+const SAFE = { x: 360, w: 920 };                      // 360..1280: what a phone keeps
+const CLEAR = { x: 616, w: 424 };                     // 616..1040: left empty for the profile photo
+const BAND = 152;                                     // cream strip at the top: all of the fair's detail
+const AREA = { y: BAND + 24, h: H - BAND - 24 - 28 };  // the room left under the band
+const COL = { x: SAFE.x, w: CLEAR.x - SAFE.x - 10 };  // the left column, clear of that photo
+const SLOT = { x: SAFE.x, w: 230, h: 90 };            // the entrepreneur's own logo
+const STALL = { x: CLEAR.x + CLEAR.w, y: 0, w: 440, h: 266 };   // 684:414, as booth.svg
 const NEED = { w: STALL.w * SCALE, h: STALL.h * SCALE };   // the photo size the slot can use
-const FACIA = 70;                                     // signboard strip laid over an uploaded photo
-const MARK = { right: 1460, y: 566, h: 46 };          // the organiser's logo, under the stall
-const SLOGAN = { size: 38, line: 48 };                // the entrepreneur's own line, set in the curved face
-const BODY = { size: 32, line: 44 };                  // who they are and which stall: the headline
+const FACIA = 60;                                     // signboard strip laid over an uploaded photo
+const MARK = { right: STALL.x + STALL.w, h: 46 };     // the organiser's logo, under the stall
+const SLOGAN = { size: 34, line: 44 };                // the entrepreneur's own line, set in the curved face
+const BODY = { size: 30, line: 40 };                  // who they are and which stall
 const META = { size: 22, line: 30 };                  // when and where the fair is
-const GAP = 30;                                       // breathing room above the fair details
 const NAME_MAX = 40;                                  // past this a name cannot sit on the facia
 const FAIR = 'জাতীয় এসএমই পণ্য মেলা ২০২৬';
 const DATES = '২২ থেকে ২৮ নভেম্বর ২০২৬';
@@ -98,11 +99,15 @@ function pinIcon(ctx, x, y, size, colour) {
   ctx.fill();
 }
 
-// One block of fair detail: an icon, then text wrapped beside it.
-function detail(ctx, icon, lines, x, top, colour) {
+// One line of fair detail, icon and text centred together on the banner.
+function detailCentre(ctx, icon, text, cx, top, colour) {
+  ctx.font = font(400, META.size);
+  const x = cx - (META.size + 14 + ctx.measureText(text).width) / 2;
   icon(ctx, x, top + 3, META.size, GREEN);
-  drawLines(ctx, lines, x + META.size + 14, top + META.size * 0.82, META.size, META.line, colour);
-  return lines.length * META.line;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = colour;
+  ctx.fillText(text, x + META.size + 14, top + META.size * 0.82);
 }
 
 // Saves as the business name, with anything a filesystem would object to taken out.
@@ -217,12 +222,12 @@ function layout(ctx, runs, maxW, size) {
   return lines;
 }
 
-function drawLines(ctx, lines, x, baseline, size, lineH, colour, centre) {
+function drawLines(ctx, lines, x, baseline, size, lineH, colour) {
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   lines.forEach((line, i) => {
     const y = baseline + i * lineH;
-    let cx = centre ? x - line.reduce((n, it) => n + it.gap + it.w, 0) / 2 : x;
+    let cx = x;
     for (const item of line) {
       cx += item.gap;
       ctx.font = font(item.weight || 400, size, item.family);
@@ -266,16 +271,18 @@ export default function Page() {
       ctx.fillRect(0, 0, W, H);
     }
 
-    // cream band: the fair's logo at the left, its name centred across the banner
-    const mid = BAND / 2;
+    // cream band: the fair's logo at the left, then its name, dates and address centred.
+    // All of this is above the profile photo and inside the crop, so a phone always shows it.
     ctx.fillStyle = CREAM;
     ctx.fillRect(0, 0, W, BAND);
-    byHeight(ctx, s.fixed.mela, SAFE.x, mid, 66);
+    byHeight(ctx, s.fixed.mela, SAFE.x, BAND / 2, 76);
     ctx.font = font(700, 36);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = DARK;
-    ctx.fillText(FAIR, W / 2, mid + 1);
+    ctx.fillText(FAIR, W / 2, 44);
+    detailCentre(ctx, calendarIcon, DATES, W / 2, 78, '#2f4a40');
+    detailCentre(ctx, pinIcon, VENUE, W / 2, 110, '#2f4a40');
     ctx.save();                       // a line of kantha stitch closes the band off
     ctx.strokeStyle = '#b4452f';
     ctx.globalAlpha = 0.28;
@@ -287,8 +294,7 @@ export default function Page() {
     ctx.stroke();
     ctx.restore();
 
-    // left column, top to bottom: the logo, their slogan set light and large,
-    // then who they are, when the fair runs and where it is
+    // left column, top to bottom: the logo, their slogan, then who they are and which stall
     const brand = { logo: s.logo, name: business.trim(), number: stallNo.trim() };
     // the logo sets how much room is left for the slogan beside it
     let logoW = SLOT.w, logoH = SLOT.h;
@@ -297,46 +303,37 @@ export default function Page() {
       logoW = s.logo.width * k;
       logoH = s.logo.height * k;
     }
-    // The headline sits high and centred: on a phone this strip is the one part of the
-    // cover that is neither cropped away at the sides nor hidden by the profile photo.
-    const body = [
-      { text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 },
-      { text: brand.number ? 'আছে এবারের মেলায় - স্টল নম্বর' : 'আছে এবারের মেলায়।' },
-    ];
-    if (brand.number) body.push({ text: brand.number, weight: 700, mark: true });
-    const lines = layout(ctx, body, SAFE.w - 24, BODY.size);   // 24 for the highlight's own padding
-    const headTop = HEAD.y + Math.max(0, (HEAD.h - lines.length * BODY.line) / 2);
-    drawLines(ctx, lines, W / 2, headTop + BODY.size * 0.82, BODY.size, BODY.line, INK, true);
-
     const slogan = message.trim()
-      ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], TEXT.w, SLOGAN.size)
+      ? layout(ctx, [{ text: message.trim(), family: SCRIPT }], COL.w, SLOGAN.size)
       : null;
-    const metaW = TEXT.w - META.size - 14;
-    const dates = layout(ctx, [{ text: DATES }], metaW, META.size);
-    const venue = layout(ctx, [{ text: VENUE }], metaW, META.size);
-    // Stacked, not side by side: the column is only as wide as the phone's crop allows.
-    const sloganH = slogan ? 18 + slogan.length * SLOGAN.line : 0;
-    const stackH = logoH + sloganH + GAP + (dates.length + venue.length) * META.line + 8;
-    let y = CONTENT.y + Math.max(0, (CONTENT.h - stackH) / 2);
+    // A narrow column reads better broken where the sentence breaks than wherever it runs out
+    // of room, so the name, the claim and the stall number are laid out a part at a time.
+    const lines = layout(ctx, [{ text: brand.name || 'আপনার প্রতিষ্ঠানের নাম', weight: 700 }], COL.w, BODY.size)
+      .concat(layout(ctx, [{ text: brand.number ? 'আছে এবারের মেলায়' : 'আছে এবারের মেলায়।' }], COL.w, BODY.size))
+      .concat(brand.number
+        ? layout(ctx, [{ text: 'স্টল নম্বর' }, { text: brand.number, weight: 700, mark: true }],
+          COL.w - 24, BODY.size)   // 24 for the highlight's own padding
+        : []);
 
+    const stackH = logoH + 18 + (slogan ? slogan.length * SLOGAN.line + 16 : 0) + lines.length * BODY.line;
+    let y = AREA.y + Math.max(0, (AREA.h - stackH) / 2);
     if (s.logo) {
       ctx.drawImage(s.logo, SLOT.x, y, logoW, logoH);
     } else {
       placeholder(ctx, { ...SLOT, y }, 'আপনার লোগো');
     }
-    y += logoH;
+    y += logoH + 18;
     if (slogan) {
-      drawLines(ctx, slogan, TEXT.x, y + 18 + SLOGAN.size * 0.8, SLOGAN.size, SLOGAN.line, DARK);
-      y += sloganH;
+      drawLines(ctx, slogan, COL.x, y + SLOGAN.size * 0.8, SLOGAN.size, SLOGAN.line, DARK);
+      y += slogan.length * SLOGAN.line + 16;
     }
-    y += GAP;
-
-    y += detail(ctx, calendarIcon, dates, TEXT.x, y, '#2f4a40') + 8;
-    detail(ctx, pinIcon, venue, TEXT.x, y, '#2f4a40');
+    drawLines(ctx, lines, COL.x, y + BODY.size * 0.82, BODY.size, BODY.line, INK);
 
     // the stall: the entrepreneur's own photo if they have one, otherwise the standard
     // stall drawing. The number goes on a facia either way.
     const shot = s.stall || s.fixed.booth;
+    STALL.y = AREA.y + Math.max(0, (AREA.h - (STALL.h + 18 + MARK.h)) / 2);
+    MARK.y = STALL.y + STALL.h + 18;
     ctx.save();
     roundRect(ctx, STALL.x, STALL.y, STALL.w, STALL.h, 18);
     ctx.clip();
